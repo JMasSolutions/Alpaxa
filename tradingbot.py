@@ -3,17 +3,13 @@ from lumibot.backtesting import YahooDataBacktesting
 from lumibot.strategies.strategy import Strategy
 from lumibot.traders import Trader
 from datetime import datetime
-
-from sympy.stats.rv import probability
-
 from finbert_utils import estimate_sentiment
 from alpaca_trade_api_fixed import REST
 from timedelta import Timedelta
 import csv
 import requests
 
-
-# Path to your CSV file
+# Path to CSV File
 file_path = "/Users/joanmascastella/Documents/ALPAXA/API_KEYS.csv"
 
 # Read the CSV file
@@ -21,14 +17,13 @@ with open(file_path, "r") as file:
     csv_reader = csv.reader(file)
     # Skip the header row
     next(csv_reader)
-    # Read the first row (assuming only one key-value pair exists)
+    # Read the first row
     row = next(csv_reader)
     endpoint, api_key, secret_key = [value.strip() for value in row]  # Strip whitespace
 
-# Define Start & End Date
-start_date = datetime(2020, 1,1)
-end_date = datetime(2023, 12,31)
-
+# Define Start & End Date for backtesting
+start_date = datetime(2016, 1,1)
+end_date = datetime(2024, 10,15)
 
 # Defining ALPACA Credentials
 ALPACA_CREDS = {
@@ -40,7 +35,7 @@ ALPACA_CREDS = {
 # Strategy
 class MLTRADER(Strategy):
     # Initializes trading algorithim
-    def initialize(self, symbol:str="SPY", cash_at_risk:float = .5):
+    def initialize(self, symbol:str="SPY", cash_at_risk:float = .3):
         self.symbol = symbol
         self.sleeptime = "24h"
         self.last_trade = None
@@ -150,7 +145,7 @@ broker = Alpaca(ALPACA_CREDS)
 # Instance of strategy
 startegy = MLTRADER(name="mlstart", broker=broker,
                     parameters={"symbol":"SPY",
-                                "cash_at_risk":0.5})
+                                "cash_at_risk":0.3})
 
 # Set up backtesting
 startegy.backtest(
@@ -158,5 +153,5 @@ startegy.backtest(
     start_date,
     end_date,
     parameters={"symbol":"SPY",
-                "cash_at_risk":0.5},
+                "cash_at_risk":0.3},
 )
