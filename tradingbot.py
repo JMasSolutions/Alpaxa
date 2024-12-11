@@ -148,10 +148,14 @@ startegy = MLTRADER(name="mlstart", broker=broker,
                                 "cash_at_risk":0.5})
 
 # Set up backtesting
-startegy.backtest(
-    YahooDataBacktesting,
-    start_date,
-    end_date,
-    parameters={"symbol":"SPY",
-                "cash_at_risk":0.5},
-)
+# startegy.backtest(
+#     YahooDataBacktesting,
+#     start_date,
+#     end_date,
+#     parameters={"symbol":"SPY",
+#                 "cash_at_risk":0.5},
+# )
+
+trader = Trader()
+trader.add_strategy(startegy)
+trader.run_all()
