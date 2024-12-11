@@ -35,7 +35,7 @@ ALPACA_CREDS = {
 # Strategy
 class MLTRADER(Strategy):
     # Initializes trading algorithim
-    def initialize(self, symbol:str="SPY", cash_at_risk:float = .3):
+    def initialize(self, symbol:str="SPY", cash_at_risk:float = .5):
         self.symbol = symbol
         self.sleeptime = "24h"
         self.last_trade = None
@@ -145,7 +145,7 @@ broker = Alpaca(ALPACA_CREDS)
 # Instance of strategy
 startegy = MLTRADER(name="mlstart", broker=broker,
                     parameters={"symbol":"SPY",
-                                "cash_at_risk":0.3})
+                                "cash_at_risk":0.5})
 
 # Set up backtesting
 startegy.backtest(
@@ -153,5 +153,5 @@ startegy.backtest(
     start_date,
     end_date,
     parameters={"symbol":"SPY",
-                "cash_at_risk":0.3},
+                "cash_at_risk":0.5},
 )
