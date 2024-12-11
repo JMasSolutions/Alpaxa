@@ -10,6 +10,8 @@ elif torch.cuda.is_available():
 else:
     device = "cpu"
 
+# Note: This code below I got from Nicholas Rennote [https://github.com/nicknochnack/MLTradingBot]
+
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
 model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert").to(device)

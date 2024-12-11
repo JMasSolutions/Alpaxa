@@ -3,6 +3,10 @@ from lumibot.backtesting import YahooDataBacktesting
 from lumibot.strategies.strategy import Strategy
 from lumibot.traders import Trader
 from datetime import datetime
+
+from sympy.stats.rv import probability
+
+from finbert_utils import estimate_sentiment
 from alpaca_trade_api_fixed import REST
 from timedelta import Timedelta
 import csv
@@ -22,7 +26,7 @@ with open(file_path, "r") as file:
     endpoint, api_key, secret_key = [value.strip() for value in row]  # Strip whitespace
 
 # Define Start & End Date
-start_date = datetime(2023, 12,15)
+start_date = datetime(2020, 1,1)
 end_date = datetime(2023, 12,31)
 
 
@@ -70,15 +74,26 @@ class MLTRADER(Strategy):
 
         if response.status_code != 200:
             print(f"Error fetching news: {response.status_code}, {response.text}")
-            return []
+            return 0.0, "neutral"
 
         response_data = response.json()
         news_items = response_data.get("news", [])
         news_headlines = [item.get("headline", "No headline") for item in news_items]
 
-        # Log fetched news headlines
+        if not news_headlines:
+            print(f"No news fetched for {self.symbol}. Defaulting to neutral sentiment.")
+            return 0.0, "neutral"
+
+        # Log the fetched headlines
         print(f"Fetched news for {self.symbol}: {news_headlines}")
-        return news_headlines
+
+        # Estimate sentiment
+        probability, sentiment = estimate_sentiment(news_headlines)
+
+        # Log sentiment results
+        print(f"Estimated sentiment for {self.symbol}: {sentiment} (Probability: {probability:.4f})")
+
+        return probability, sentiment
 
     # Dynamically calculate potential position price
     def position_sizing(self):
@@ -93,12 +108,14 @@ class MLTRADER(Strategy):
     # Runs after every new tick, every new piece of data
     def on_trading_iteration(self):
         cash, last_price, quantity = self.position_sizing()
+        probability, sentiment = self.get_sentiment()
 
         # Check if cash balance is greater than last price
         if cash > last_price:
-            if self.last_trade is None:
-                news = self.get_news()
-                print(news)
+            # Buy if sentiment is positive and probability is high
+            if sentiment == "positive" and probability > .999:
+                if self.last_trade == "sell":
+                    self.sell_all()
                 order = self.create_order(
                     self.symbol,
                     quantity,
@@ -106,9 +123,24 @@ class MLTRADER(Strategy):
                     type="bracket",
                     take_profit_price=last_price*1.20, # Take profit at 20%
                     stop_loss_price=last_price*.95 # Stop loss at 5%
-                )
+                    )
                 self.submit_order(order)
                 self.last_trade = "buy"
+
+            # Buy if sentiment is negative and probability is high
+            elif sentiment == "negative" and probability > .999:
+                if self.last_trade == "buy":
+                    self.sell_all()
+                order = self.create_order(
+                    self.symbol,
+                    quantity,
+                    "sell",
+                    type="bracket",
+                    take_profit_price=last_price*.8,
+                    stop_loss_price=last_price*1.05
+                    )
+                self.submit_order(order)
+                self.last_trade = "sell"
 
 
 
