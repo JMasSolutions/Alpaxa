@@ -9,6 +9,8 @@ from timedelta import Timedelta
 import csv
 import requests
 
+from main import account
+
 # Path to CSV File
 file_path = "/Users/joanmascastella/Documents/ALPAXA/API_KEYS.csv"
 
@@ -44,6 +46,7 @@ class MLTRADER(Strategy):
                         key_id=api_key,
                         secret_key=secret_key,
                         )
+        print(self.api.get_account())
 
     # Gets dates for get_news function
     def get_dates(self):
@@ -152,9 +155,12 @@ startegy = MLTRADER(name="mlstart", broker=broker,
 #     YahooDataBacktesting,
 #     start_date,
 #     end_date,
-#     parameters={"symbol":"SPY",
-#                 "cash_at_risk":0.5},
+#     parameters={
+#         "symbol": "SPY",
+#         "cash_at_risk": 0.5,
+#     },
 # )
+
 
 trader = Trader()
 trader.add_strategy(startegy)
