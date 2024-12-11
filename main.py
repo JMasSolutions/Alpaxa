@@ -18,7 +18,7 @@ trading_client = TradingClient(api_key, secret_key, paper=True)
 
 # Example: Print account details to verify it works
 try:
-    account = trading_client.get_account()
+    account = trading_client.get_all_positions()
     print(account)
 except Exception as e:
     print(f"Error: {e}")
