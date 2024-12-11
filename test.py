@@ -24,7 +24,7 @@ ALPACA_CREDS = {
 }
 
 class MLTRADER(Strategy):
-    def initialize(self, symbol="NVDA", cash_at_risk=0.5):  # Default symbol updated to NVDA
+    def initialize(self, symbol="SPY", cash_at_risk=0.5):  # Default symbol updated to SPY
         self.symbol = symbol
         self.cash_at_risk = cash_at_risk
         self.api = REST(base_url=endpoint, key_id=api_key, secret_key=secret_key)
@@ -108,7 +108,7 @@ class MLTRADER(Strategy):
 
 # Initialize Broker and Trader
 broker = Alpaca(ALPACA_CREDS)
-strategy = MLTRADER(name="MLTrader", broker=broker, parameters={"symbol": "NVDA", "cash_at_risk": 0.5})
+strategy = MLTRADER(name="MLTrader", broker=broker, parameters={"symbol": "SPY", "cash_at_risk": 0.5})  # Updated symbol to SPY
 trader = Trader()
 trader.add_strategy(strategy)
 
