@@ -24,7 +24,7 @@ with open(file_path, "r") as file:
     endpoint, api_key, secret_key = [value.strip() for value in row]  # Strip whitespace
 
 # Define Start & End Date for backtesting
-start_date = datetime(2016, 1,1)
+start_date = datetime(2017, 1,1)
 end_date = datetime(2024, 10,15)
 
 # Defining ALPACA Credentials
@@ -37,7 +37,7 @@ ALPACA_CREDS = {
 # Strategy
 class MLTRADER(Strategy):
     # Initializes trading algorithim
-    def initialize(self, symbol:str="SPY", cash_at_risk:float = .5):
+    def initialize(self, symbol:str="NVDA", cash_at_risk:float = .5):
         self.symbol = symbol
         self.sleeptime = "24h"
         self.last_trade = None
@@ -46,7 +46,7 @@ class MLTRADER(Strategy):
                         key_id=api_key,
                         secret_key=secret_key,
                         )
-        print(self.api.get_account())
+       #Get account data using the aplaca library not through alpaca_trade_api_fixed # print(self.api.get_account())
 
     # Gets dates for get_news function
     def get_dates(self):
@@ -147,21 +147,21 @@ broker = Alpaca(ALPACA_CREDS)
 
 # Instance of strategy
 startegy = MLTRADER(name="mlstart", broker=broker,
-                    parameters={"symbol":"SPY",
+                    parameters={"symbol":"NVDA",
                                 "cash_at_risk":0.5})
 
 # Set up backtesting
-# startegy.backtest(
-#     YahooDataBacktesting,
-#     start_date,
-#     end_date,
-#     parameters={
-#         "symbol": "SPY",
-#         "cash_at_risk": 0.5,
-#     },
-# )
+startegy.backtest(
+    YahooDataBacktesting,
+    start_date,
+    end_date,
+    parameters={
+        "symbol": "NVDA",
+        "cash_at_risk": 0.5,
+    },
+)
 
 
-trader = Trader()
-trader.add_strategy(startegy)
-trader.run_all()
+# trader = Trader()
+# trader.add_strategy(startegy)
+# trader.run_all()
