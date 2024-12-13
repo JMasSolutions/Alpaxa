@@ -37,7 +37,7 @@ ALPACA_CREDS = {
 # Strategy
 class MLTRADER(Strategy):
     # Initializes trading algorithim
-    def initialize(self, symbol:str="NVDA", cash_at_risk:float = .5):
+    def initialize(self, symbol:str="SPY", cash_at_risk:float = .3):
         self.symbol = symbol
         self.sleeptime = "24h"
         self.last_trade = None
@@ -46,7 +46,8 @@ class MLTRADER(Strategy):
                         key_id=api_key,
                         secret_key=secret_key,
                         )
-       #Get account data using the aplaca library not through alpaca_trade_api_fixed # print(self.api.get_account())
+       #Get account data using the aplaca library not through alpaca_trade_api_fixed
+        # print(self.api.get_account())
 
     # Gets dates for get_news function
     def get_dates(self):
@@ -119,8 +120,8 @@ class MLTRADER(Strategy):
                     quantity,
                     "buy",
                     type="bracket",
-                    take_profit_price=last_price*1.20, # Take profit at 20%
-                    stop_loss_price=last_price*.95 # Stop loss at 5%
+                    take_profit_price=last_price*1.30, # Take profit at 20%
+                    stop_loss_price=last_price*.85 # Stop loss at 5%
                     )
                 self.submit_order(order)
                 self.last_trade = "buy"
@@ -147,8 +148,8 @@ broker = Alpaca(ALPACA_CREDS)
 
 # Instance of strategy
 startegy = MLTRADER(name="mlstart", broker=broker,
-                    parameters={"symbol":"NVDA",
-                                "cash_at_risk":0.5})
+                    parameters={"symbol":"SPY",
+                                "cash_at_risk":0.3})
 
 # Set up backtesting
 startegy.backtest(
@@ -156,8 +157,8 @@ startegy.backtest(
     start_date,
     end_date,
     parameters={
-        "symbol": "NVDA",
-        "cash_at_risk": 0.5,
+        "symbol": "SPY",
+        "cash_at_risk": 0.3,
     },
 )
 
