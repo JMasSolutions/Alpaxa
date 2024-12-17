@@ -4,18 +4,58 @@ from lumibot.brokers import Alpaca
 from lumibot.backtesting import YahooDataBacktesting
 from lumibot.strategies.strategy import Strategy
 from datetime import datetime
-from alpaca_trade_api_fixed import REST
+import pandas as pd
 import csv
+import requests
+import yfinance as yf
+from helpful_functions.finbert_utils import estimate_sentiment
+
+# =====================
+# HELPER FUNCTIONS
+# =====================
+def calculate_rsi(series, period=14):
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period).mean()
+    loss = (-delta.where(delta < 0, 0)).ewm(alpha=1/period).mean()
+    rs = gain / (loss + 1e-8)
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+def calculate_macd(series, short=12, long=26, signal=9):
+    ema_short = series.ewm(span=short, adjust=False).mean()
+    ema_long = series.ewm(span=long, adjust=False).mean()
+    macd_line = ema_short - ema_long
+    return macd_line
+
+def fetch_usd_jpy():
+    data = yf.download("JPY=X", period="1d", interval="1d")
+    if data.empty:
+        print("No data fetched for USD/JPY, returning default 145.0")
+        return 145.0
+    return data['Close'].iloc[-1].item()
+
+def fetch_vix():
+    data = yf.download("^VIX", period="1d", interval="1d")
+    if data.empty:
+        print("No data fetched for VIX, returning default 20.0")
+        return 20.0
+    return data['Close'].iloc[-1].item()
+
+def calculate_monthly_return(series):
+    if len(series) < 20:
+        return pd.Series([0]*len(series), index=series.index)
+    monthly_return = (series - series.shift(20)) / (series.shift(20) + 1e-8)
+    return monthly_return.fillna(0)
+
+def calculate_price_change(series):
+    return series.pct_change().fillna(0)
 
 
 # =====================
 # LSTM MODEL DEFINITION
 # =====================
 class LSTMD(nn.Module):
-    def __init__(self, input_size, hidden_size=128, num_layers=3, dropout=0.3):
-        """
-        LSTM Model for binary classification.
-        """
+    def __init__(self, input_size=10, hidden_size=128, num_layers=3, dropout=0.3):
         super().__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout)
         self.fc = nn.Linear(hidden_size, 1)
@@ -33,9 +73,10 @@ file_path = "/Users/joanmascastella/Documents/ALPAXA/API_KEYS.csv"
 
 with open(file_path, "r") as file:
     csv_reader = csv.reader(file)
-    next(csv_reader)  # Skip header row
+    next(csv_reader)
     row = next(csv_reader)
     endpoint, api_key, secret_key = [value.strip() for value in row]
+
 
 # =====================
 # TRADING STRATEGY
@@ -46,19 +87,63 @@ class MLTRADER(Strategy):
         self.sleeptime = "24h"
         self.last_trade = None
         self.cash_at_risk = cash_at_risk
-        self.api = REST(base_url=endpoint, key_id=api_key, secret_key=secret_key)
 
-        # LSTM Model Configuration
-        input_size = 10  # Feature size
+        input_size = 10
         hidden_size = 128
         num_layers = 3
         dropout = 0.3
-
-        # Instantiate and load the LSTM model
         self.lstm_model = LSTMD(input_size, hidden_size, num_layers, dropout).to("cpu")
         self.lstm_model.load_state_dict(torch.load("models/76mod.pth", map_location="cpu"))
         self.lstm_model.eval()
         print("LSTM model loaded successfully!")
+
+    def get_sentiment_score(self):
+        today = self.get_datetime()
+        three_days_prior = today - pd.Timedelta(days=3)
+        start = three_days_prior.strftime("%Y-%m-%d")
+        end = today.strftime("%Y-%m-%d")
+
+        url = "https://data.alpaca.markets/v1beta1/news"
+        headers = {
+            "APCA-API-KEY-ID": api_key,
+            "APCA-API-SECRET-KEY": secret_key,
+        }
+        params = {
+            "start": start,
+            "end": end,
+            "symbols": self.symbol,
+        }
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code != 200:
+                print(f"Error fetching news: {response.status_code}, {response.text}")
+                return 0.0
+
+            response_data = response.json()
+            news_items = response_data.get("news", [])
+            news_headlines = [item.get("headline", "No headline") for item in news_items]
+
+            if not news_headlines:
+                print(f"No news fetched for {self.symbol}. Defaulting to neutral sentiment.")
+                return 0.0
+
+            probability, sentiment = estimate_sentiment(news_headlines)
+            if sentiment == "positive":
+                score = probability
+            elif sentiment == "negative":
+                score = -probability
+            else:
+                score = 0.0
+            return score
+        except Exception as e:
+            print(f"Exception fetching sentiment: {e}")
+            return 0.0
+
+    def preprocess_realtime_data(self, data):
+        scaled_features = (data - data.mean()) / (data.std() + 1e-8)
+        input_tensor = torch.tensor(scaled_features.values, dtype=torch.float32).unsqueeze(0)
+        return input_tensor
 
     def position_sizing(self):
         cash = self.get_cash()
@@ -67,10 +152,46 @@ class MLTRADER(Strategy):
         return cash, last_price, quantity
 
     def on_trading_iteration(self):
-        cash, last_price, quantity = self.position_sizing()
+        # Fetch 30 days of daily data from Yahoo (backtester)
+        bars = self.get_historical_prices(self.symbol, length=30, timestep="day")
 
-        # Dummy input for testing, replace this with actual input features
-        input_tensor = torch.randn(1, 10, 10)
+        # Convert Bars to DataFrame
+        bars = bars.df
+
+        # Ensure we have data
+        if len(bars) < 1:
+            print("No data fetched, cannot index last row.")
+            return
+
+        # Get last close price from historical data
+        last_close = bars["close"].iloc[-1]
+
+        # Compute indicators
+        bars["Adj Close"] = bars["close"]
+        bars["SMA_14"] = bars["close"].rolling(window=14).mean()
+        bars["EMA_14"] = bars["close"].ewm(span=14, adjust=False).mean()
+        bars["RSI"] = calculate_rsi(bars["close"], period=14)
+        bars["MACD"] = calculate_macd(bars["close"])
+        bars["USD_JPY"] = fetch_usd_jpy()
+        bars["VIX"] = fetch_vix()
+        bars["Monthly_Return"] = calculate_monthly_return(bars["close"])
+        bars["Price_Change"] = calculate_price_change(bars["close"])
+
+        # Fetch sentiment (Note: For backtesting, this won't reflect historical sentiment accurately)
+        sentiment_score = self.get_sentiment_score()
+        bars["Sentiment_Score"] = sentiment_score
+
+        # Select last 10 rows and the 10 features
+        bars = bars.tail(10)
+        bars = bars[["Adj Close", "SMA_14", "EMA_14", "RSI", "MACD", "USD_JPY", "VIX", "Monthly_Return", "Price_Change", "Sentiment_Score"]]
+        bars = bars.fillna(0)
+
+        input_tensor = self.preprocess_realtime_data(bars)
+
+        # Validate tensor shape
+        if input_tensor.shape != (1, 10, 10):
+            print(f"Invalid input shape {input_tensor.shape}")
+            return
 
         # Run LSTM model inference
         with torch.no_grad():
@@ -79,15 +200,19 @@ class MLTRADER(Strategy):
 
         print(f"Model Prediction: {prediction:.4f}")
 
-        # Trade decision
+        cash, last_price, quantity = self.position_sizing()
+
+        # Incorporate last_close into the logic
+        # Example: Only buy if prediction > 0.6 AND last_close < last_price
+        # Only sell if prediction < 0.4 AND last_close > last_price
         if cash > last_price:
-            if prediction > 0.6:  # Threshold for buy
-                print("Positive prediction - BUY order.")
+            if prediction > 0.6 and last_close < last_price:  # Buy signal + condition
+                print("Positive prediction and last close below current price - BUY order.")
                 order = self.create_order(self.symbol, quantity, "buy", type="market")
                 self.submit_order(order)
                 self.last_trade = "buy"
-            elif prediction < 0.4:  # Threshold for sell
-                print("Negative prediction - SELL order.")
+            elif prediction < 0.4 and last_close > last_price:  # Sell signal + condition
+                print("Negative prediction and last close above current price - SELL order.")
                 order = self.create_order(self.symbol, quantity, "sell", type="market")
                 self.submit_order(order)
                 self.last_trade = "sell"
@@ -96,6 +221,12 @@ class MLTRADER(Strategy):
 # =====================
 # BACKTESTING CONFIGURATION
 # =====================
+with open(file_path, "r") as file:
+    csv_reader = csv.reader(file)
+    next(csv_reader)
+    row = next(csv_reader)
+    endpoint, api_key, secret_key = [value.strip() for value in row]
+
 ALPACA_CREDS = {
     "API_KEY": api_key,
     "API_SECRET": secret_key,
@@ -108,7 +239,7 @@ end_date = datetime(2024, 10, 15)
 broker = Alpaca(ALPACA_CREDS)
 
 # Instantiate strategy
-strategy = MLTRADER(name="ml_strategy", broker=broker, parameters={"symbol": "SPY", "cash_at_risk": 0.3})
+strategy = MLTRADER(name="ml_strategy", broker=broker, parameters={"symbol": "TSLA", "cash_at_risk": 0.3})
 
 # Backtest
 strategy.backtest(

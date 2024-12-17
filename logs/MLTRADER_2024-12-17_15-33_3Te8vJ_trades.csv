@@ -1,0 +1,9 @@
+time,strategy,identifier,symbol,side,type,status,multiplier,time_in_force,asset.strike,asset.multiplier,asset.asset_type,price,filled_quantity,trade_cost
+2017-09-11 09:30:00-04:00,MLTRADER,f6025c1ad02a40e08f19d8629698569a,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2017-09-11 09:30:00-04:00,MLTRADER,f6025c1ad02a40e08f19d8629698569a,TSLA,buy,market,fill,1,gtc,0.0,1,stock,24.299333572387695,1235.0,0.0
+2020-07-31 09:30:00-04:00,MLTRADER,884947ce9fcc4564aabbcf3401072b89,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2020-07-31 09:30:00-04:00,MLTRADER,884947ce9fcc4564aabbcf3401072b89,TSLA,buy,market,fill,1,gtc,0.0,1,stock,101.0,208.0,0.0
+2023-08-30 09:30:00-04:00,MLTRADER,074b806d7d02446eb920d0f7f3645b6c,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2023-08-30 09:30:00-04:00,MLTRADER,074b806d7d02446eb920d0f7f3645b6c,TSLA,buy,market,fill,1,gtc,0.0,1,stock,255.97999572753906,57.0,0.0
+2023-09-01 09:30:00-04:00,MLTRADER,922cdc8a55e4415381ce99ba87070e64,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2023-09-01 09:30:00-04:00,MLTRADER,922cdc8a55e4415381ce99ba87070e64,TSLA,buy,market,fill,1,gtc,0.0,1,stock,257.260009765625,40.0,0.0
