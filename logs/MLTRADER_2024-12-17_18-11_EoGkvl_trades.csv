@@ -1,0 +1,5 @@
+time,strategy,identifier,symbol,side,type,status,multiplier,time_in_force,asset.strike,asset.multiplier,asset.asset_type,price,filled_quantity,trade_cost
+2016-01-04 09:30:00-05:00,MLTRADER,379ceab1c7c34a7d9c6626bfddd480ab,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-01-04 09:30:00-05:00,MLTRADER,379ceab1c7c34a7d9c6626bfddd480ab,TSLA,buy,market,fill,1,gtc,0.0,1,stock,15.381333351135254,1950.0,0.0
+2018-01-23 09:30:00-05:00,MLTRADER,e05d8e4d96cb4118bf22a102e7ff4207,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2018-01-23 09:30:00-05:00,MLTRADER,e05d8e4d96cb4118bf22a102e7ff4207,TSLA,buy,market,fill,1,gtc,0.0,1,stock,24.0,875.0,0.0
