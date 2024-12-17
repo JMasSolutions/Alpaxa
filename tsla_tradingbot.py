@@ -211,7 +211,7 @@ class MLTRADER(Strategy):
                         quantity,
                         "buy",
                         type="market",
-                        take_profit_price=last_price * 1.30,
+                        take_profit_price=last_price * 1.15,
                         stop_loss_price=last_price * 0.85
                     )
                     self.submit_order(order)
