@@ -97,7 +97,7 @@ class MLTRADER(Strategy):
         self.lstm_model.eval()
         print("LSTM model loaded successfully!")
 
-    def get_sentiment_score(self):
+    def get_sentiment(self):
         today = self.get_datetime()
         three_days_prior = today - pd.Timedelta(days=3)
         start = three_days_prior.strftime("%Y-%m-%d")
@@ -118,27 +118,27 @@ class MLTRADER(Strategy):
             response = requests.get(url, headers=headers, params=params)
             if response.status_code != 200:
                 print(f"Error fetching news: {response.status_code}, {response.text}")
-                return 0.0
+                return 0.0, "neutral"
 
             response_data = response.json()
             news_items = response_data.get("news", [])
             news_headlines = [item.get("headline", "No headline") for item in news_items]
 
+            # Print the news headlines for debugging
+            print("\nFetched News Headlines:")
+            for idx, headline in enumerate(news_headlines, 1):
+                print(f"{idx}. {headline}")
+
             if not news_headlines:
                 print(f"No news fetched for {self.symbol}. Defaulting to neutral sentiment.")
-                return 0.0
+                return 0.0, "neutral"
 
             probability, sentiment = estimate_sentiment(news_headlines)
-            if sentiment == "positive":
-                score = probability
-            elif sentiment == "negative":
-                score = -probability
-            else:
-                score = 0.0
-            return score
+            return probability, sentiment
+
         except Exception as e:
             print(f"Exception fetching sentiment: {e}")
-            return 0.0
+            return 0.0, "neutral"  # Default to neutral sentiment on error
 
     def preprocess_realtime_data(self, data):
         scaled_features = (data - data.mean()) / (data.std() + 1e-8)
@@ -154,9 +154,7 @@ class MLTRADER(Strategy):
     def on_trading_iteration(self):
         # Fetch 30 days of daily data from Yahoo (backtester)
         bars = self.get_historical_prices(self.symbol, length=30, timestep="day")
-
-        # Convert Bars to DataFrame
-        bars = bars.df
+        bars = bars.df  # Convert Bars to DataFrame
 
         # Ensure we have data
         if len(bars) < 1:
@@ -166,7 +164,11 @@ class MLTRADER(Strategy):
         # Get last close price from historical data
         last_close = bars["close"].iloc[-1]
 
-        # Compute indicators
+        # Fetch sentiment
+        probability, sentiment = self.get_sentiment()
+        print(f"Sentiment Raw Output: Probability={probability}, Sentiment={sentiment}")
+
+        # Run LSTM model inference
         bars["Adj Close"] = bars["close"]
         bars["SMA_14"] = bars["close"].rolling(window=14).mean()
         bars["EMA_14"] = bars["close"].ewm(span=14, adjust=False).mean()
@@ -176,46 +178,77 @@ class MLTRADER(Strategy):
         bars["VIX"] = fetch_vix()
         bars["Monthly_Return"] = calculate_monthly_return(bars["close"])
         bars["Price_Change"] = calculate_price_change(bars["close"])
+        bars["Sentiment_Score"] = probability  # Use probability from sentiment
 
-        # Fetch sentiment (Note: For backtesting, this won't reflect historical sentiment accurately)
-        sentiment_score = self.get_sentiment_score()
-        bars["Sentiment_Score"] = sentiment_score
-
-        # Select last 10 rows and the 10 features
-        bars = bars.tail(10)
-        bars = bars[["Adj Close", "SMA_14", "EMA_14", "RSI", "MACD", "USD_JPY", "VIX", "Monthly_Return", "Price_Change", "Sentiment_Score"]]
-        bars = bars.fillna(0)
+        # Select the last 10 rows and 10 features
+        bars = bars.tail(10).fillna(0)
+        bars = bars[["Adj Close", "SMA_14", "EMA_14", "RSI", "MACD", "USD_JPY", "VIX", "Monthly_Return", "Price_Change",
+                     "Sentiment_Score"]]
 
         input_tensor = self.preprocess_realtime_data(bars)
-
-        # Validate tensor shape
+        print(f"Input Tensor Shape: {input_tensor.shape}")  # Debugging
         if input_tensor.shape != (1, 10, 10):
             print(f"Invalid input shape {input_tensor.shape}")
             return
 
-        # Run LSTM model inference
         with torch.no_grad():
             output = self.lstm_model(input_tensor)
             prediction = torch.sigmoid(output).item()
 
         print(f"Model Prediction: {prediction:.4f}")
 
+        # Position sizing
         cash, last_price, quantity = self.position_sizing()
 
-        # Incorporate last_close into the logic
-        # Example: Only buy if prediction > 0.6 AND last_close < last_price
-        # Only sell if prediction < 0.4 AND last_close > last_price
+        # Define thresholds
+        upper_buy_threshold = 0.521
+        lower_sell_threshold = 0.461
+
+
         if cash > last_price:
-            if prediction > 0.6 and last_close < last_price:  # Buy signal + condition
-                print("Positive prediction and last close below current price - BUY order.")
-                order = self.create_order(self.symbol, quantity, "buy", type="market")
-                self.submit_order(order)
-                self.last_trade = "buy"
-            elif prediction < 0.4 and last_close > last_price:  # Sell signal + condition
-                print("Negative prediction and last close above current price - SELL order.")
-                order = self.create_order(self.symbol, quantity, "sell", type="market")
-                self.submit_order(order)
-                self.last_trade = "sell"
+            # If model predicts BUY
+            if prediction > upper_buy_threshold:
+                print("ML Model Suggests BUY.")
+                if sentiment == "positive" and probability > 0.9:
+                    print("Strong BUY signal: Positive sentiment confirms model prediction.")
+                    if self.last_trade == "sell":
+                        self.sell_all()
+                    order = self.create_order(
+                        self.symbol,
+                        quantity,
+                        "buy",
+                        type="market",
+                        take_profit_price=last_price * 1.30,
+                        stop_loss_price=last_price * 0.85
+                    )
+                    self.submit_order(order)
+                    self.last_trade = "buy"
+                else:
+                    print("Sentiment does not confirm BUY signal - NO ACTION.")
+
+            # If model predicts SELL
+            elif prediction < lower_sell_threshold:
+                print("ML Model Suggests SELL.")
+                if sentiment == "negative" and probability > 0.9:
+                    print("Strong SELL signal: Negative sentiment confirms model prediction.")
+                    if self.last_trade == "buy":
+                        self.sell_all()
+                    order = self.create_order(
+                        self.symbol,
+                        quantity,
+                        "sell",
+                        type="market",
+                        take_profit_price=last_price * 0.85,
+                        stop_loss_price=last_price * 1.05
+                    )
+                    self.submit_order(order)
+                    self.last_trade = "sell"
+                else:
+                    print("Sentiment does not confirm SELL signal - NO ACTION.")
+
+            # If model prediction is neutral
+            else:
+                print("ML Model prediction is neutral - NO ACTION.")
 
 
 # =====================

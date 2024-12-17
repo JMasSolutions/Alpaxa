@@ -1,0 +1,21 @@
+time,strategy,identifier,symbol,side,type,status,multiplier,time_in_force,asset.strike,asset.multiplier,asset.asset_type,price,filled_quantity,trade_cost
+2016-02-18 09:30:00-05:00,MLTRADER,79ae3f46dc824c0887fd99cbb66b5ed7,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-02-18 09:30:00-05:00,MLTRADER,79ae3f46dc824c0887fd99cbb66b5ed7,TSLA,buy,market,fill,1,gtc,0.0,1,stock,11.494667053222656,2610.0,0.0
+2016-02-22 09:30:00-05:00,MLTRADER,607313eef5034151aa85314ccf4a7f72,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-02-22 09:30:00-05:00,MLTRADER,607313eef5034151aa85314ccf4a7f72,TSLA,buy,market,fill,1,gtc,0.0,1,stock,11.341333389282227,1852.0,0.0
+2016-02-26 09:30:00-05:00,MLTRADER,6dd18f8f15f142f8bfece3681b2d283d,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-02-26 09:30:00-05:00,MLTRADER,6dd18f8f15f142f8bfece3681b2d283d,TSLA,buy,market,fill,1,gtc,0.0,1,stock,12.579999923706055,1168.0,0.0
+2016-02-29 09:30:00-05:00,MLTRADER,bcc10b8433ec427b8874c8242e22f64b,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-02-29 09:30:00-05:00,MLTRADER,bcc10b8433ec427b8874c8242e22f64b,TSLA,buy,market,fill,1,gtc,0.0,1,stock,12.826666831970215,802.0,0.0
+2016-03-01 09:30:00-05:00,MLTRADER,5af60889157a42dd8546ecd264a2d88a,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-01 09:30:00-05:00,MLTRADER,5af60889157a42dd8546ecd264a2d88a,TSLA,buy,market,fill,1,gtc,0.0,1,stock,12.949999809265137,556.0,0.0
+2016-03-04 09:30:00-05:00,MLTRADER,988adf98a5dd4af6b436d6ecfea7c56b,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-04 09:30:00-05:00,MLTRADER,988adf98a5dd4af6b436d6ecfea7c56b,TSLA,buy,market,fill,1,gtc,0.0,1,stock,13.199999809265137,382.0,0.0
+2016-03-09 09:30:00-05:00,MLTRADER,6c5f250eb538428293a3aeda3e3ff11d,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-09 09:30:00-05:00,MLTRADER,6c5f250eb538428293a3aeda3e3ff11d,TSLA,buy,market,fill,1,gtc,0.0,1,stock,13.63466739654541,259.0,0.0
+2016-03-10 09:30:00-05:00,MLTRADER,3555fdedef764a239e1eeaee19c8880e,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-10 09:30:00-05:00,MLTRADER,3555fdedef764a239e1eeaee19c8880e,TSLA,buy,market,fill,1,gtc,0.0,1,stock,14.0,177.0,0.0
+2016-03-11 09:30:00-05:00,MLTRADER,206ea19e440a4e34922e426d67d85479,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-11 09:30:00-05:00,MLTRADER,206ea19e440a4e34922e426d67d85479,TSLA,buy,market,fill,1,gtc,0.0,1,stock,13.862000465393066,125.0,0.0
+2016-03-17 09:30:00-04:00,MLTRADER,5ddd9209b929411c8affe798693bc2fd,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2016-03-17 09:30:00-04:00,MLTRADER,5ddd9209b929411c8affe798693bc2fd,TSLA,buy,market,fill,1,gtc,0.0,1,stock,15.273332595825195,79.0,0.0
