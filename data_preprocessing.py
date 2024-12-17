@@ -91,10 +91,11 @@ def prepare_stock_data(file_path, sequence_length=10):
 
     return train_dataset, test_dataset
 
-# File path and execution
-file_path = "data/tsla_monthly_sentiment_data.csv"
+# Main block
+if __name__ == "__main__":
+    file_path = "data/tsla_monthly_sentiment_data.csv"
 
-# Prepare datasets
-train_dataset, test_dataset = prepare_stock_data(file_path)
+    # Prepare datasets
+    train_dataset, test_dataset = prepare_stock_data(file_path)
 
-print("\nData preparation complete. Datasets are ready for training.")
+    print("\nData preparation complete. Datasets are ready for training.")
