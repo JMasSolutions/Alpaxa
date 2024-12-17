@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Path to CSV File for Alpaca API keys
 file_path = "/Users/joanmascastella/Documents/ALPAXA/API_KEYS.csv"
-output_file = "tsla_monthly_sentiment_data.csv"  # Output CSV file path
+output_file = "/data/tsla_monthly_sentiment_data.csv"  # Output CSV file path
 
 # Read API credentials
 with open(file_path, "r") as file:

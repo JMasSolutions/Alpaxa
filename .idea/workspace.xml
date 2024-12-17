@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Loading api keys">
-      <change afterPath="$PROJECT_DIR$/data_preprocessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/fetch_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsla_monthly_sentiment_data.csv" beforeDir="false" />
-    </list>
+    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Loading api keys" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

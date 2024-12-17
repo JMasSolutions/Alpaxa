@@ -15,7 +15,7 @@ def clean_DF(path):
     return cleaned_data
 
 
-file_path = "tsla_monthly_sentiment_data.csv"
+file_path = "data/tsla_monthly_sentiment_data.csv"
 df = clean_DF(file_path)
 print(df.head())
 
