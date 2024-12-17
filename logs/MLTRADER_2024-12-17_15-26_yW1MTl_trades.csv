@@ -1,0 +1,17 @@
+time,strategy,identifier,symbol,side,type,status,multiplier,time_in_force,asset.strike,asset.multiplier,asset.asset_type,price,filled_quantity,trade_cost
+2017-02-08 09:30:00-05:00,MLTRADER,8b79954ccde6475a99aeeed499f75286,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2017-02-08 09:30:00-05:00,MLTRADER,8b79954ccde6475a99aeeed499f75286,TSLA,buy,market,fill,1,gtc,0.0,1,stock,17.156667709350586,1749.0,0.0
+2017-11-28 09:30:00-05:00,MLTRADER,60167304b3f04d069f977c00a86c5348,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2017-11-28 09:30:00-05:00,MLTRADER,60167304b3f04d069f977c00a86c5348,TSLA,buy,market,fill,1,gtc,0.0,1,stock,21.090667724609375,996.0,0.0
+2018-09-05 09:30:00-04:00,MLTRADER,28262313d5b141d098a5125c85dd74a6,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2018-09-05 09:30:00-04:00,MLTRADER,28262313d5b141d098a5125c85dd74a6,TSLA,buy,market,fill,1,gtc,0.0,1,stock,18.98666763305664,774.0,0.0
+2019-11-25 09:30:00-05:00,MLTRADER,7e677f578ed645a491df2b22358c6aab,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2019-11-25 09:30:00-05:00,MLTRADER,7e677f578ed645a491df2b22358c6aab,TSLA,buy,market,fill,1,gtc,0.0,1,stock,22.954666137695312,448.0,0.0
+2020-09-09 09:30:00-04:00,MLTRADER,06405c3778d64d5f86bab255cd13aa51,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2020-09-09 09:30:00-04:00,MLTRADER,06405c3778d64d5f86bab255cd13aa51,TSLA,buy,market,fill,1,gtc,0.0,1,stock,128.73666381835938,56.0,0.0
+2021-11-18 09:30:00-05:00,MLTRADER,b358c627240f442e91bc7b486ab4c87d,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2021-11-18 09:30:00-05:00,MLTRADER,b358c627240f442e91bc7b486ab4c87d,TSLA,buy,market,fill,1,gtc,0.0,1,stock,368.8500061035156,14.0,0.0
+2023-10-12 09:30:00-04:00,MLTRADER,16c4e6625c26488aa498020da3d33c3c,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2023-10-12 09:30:00-04:00,MLTRADER,16c4e6625c26488aa498020da3d33c3c,TSLA,buy,market,fill,1,gtc,0.0,1,stock,258.8999938964844,13.0,0.0
+2023-12-14 09:30:00-05:00,MLTRADER,cf1d0fd9dae24adc82df3a914f885f4f,TSLA,buy,market,new,1,gtc,0.0,1,stock,,,
+2023-12-14 09:30:00-05:00,MLTRADER,cf1d0fd9dae24adc82df3a914f885f4f,TSLA,buy,market,fill,1,gtc,0.0,1,stock,241.22000122070312,10.0,0.0
