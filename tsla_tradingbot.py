@@ -161,9 +161,6 @@ class MLTRADER(Strategy):
             print("No data fetched, cannot index last row.")
             return
 
-        # Get last close price from historical data
-        last_close = bars["close"].iloc[-1]
-
         # Fetch sentiment
         probability, sentiment = self.get_sentiment()
         print(f"Sentiment Raw Output: Probability={probability}, Sentiment={sentiment}")
@@ -178,7 +175,7 @@ class MLTRADER(Strategy):
         bars["VIX"] = fetch_vix()
         bars["Monthly_Return"] = calculate_monthly_return(bars["close"])
         bars["Price_Change"] = calculate_price_change(bars["close"])
-        bars["Sentiment_Score"] = probability  # Use probability from sentiment
+        bars["Sentiment_Score"] = probability
 
         # Select the last 10 rows and 10 features
         bars = bars.tail(10).fillna(0)
@@ -186,10 +183,6 @@ class MLTRADER(Strategy):
                      "Sentiment_Score"]]
 
         input_tensor = self.preprocess_realtime_data(bars)
-        print(f"Input Tensor Shape: {input_tensor.shape}")  # Debugging
-        if input_tensor.shape != (1, 10, 10):
-            print(f"Invalid input shape {input_tensor.shape}")
-            return
 
         with torch.no_grad():
             output = self.lstm_model(input_tensor)
@@ -201,16 +194,16 @@ class MLTRADER(Strategy):
         cash, last_price, quantity = self.position_sizing()
 
         # Define thresholds
-        upper_buy_threshold = 0.521
-        lower_sell_threshold = 0.461
+        upper_buy_threshold = 0.51
+        lower_sell_threshold = 0.45
 
 
         if cash > last_price:
             # If model predicts BUY
-            if prediction > upper_buy_threshold:
-                print("ML Model Suggests BUY.")
-                if sentiment == "positive" and probability > 0.9:
-                    print("Strong BUY signal: Positive sentiment confirms model prediction.")
+            if sentiment == "positive" and probability > 0.9:
+                print("Sentiment Suggests BUY.")
+                if prediction > upper_buy_threshold:
+                    print("Model Suggests buy.")
                     if self.last_trade == "sell":
                         self.sell_all()
                     order = self.create_order(
@@ -227,10 +220,10 @@ class MLTRADER(Strategy):
                     print("Sentiment does not confirm BUY signal - NO ACTION.")
 
             # If model predicts SELL
-            elif prediction < lower_sell_threshold:
-                print("ML Model Suggests SELL.")
-                if sentiment == "negative" and probability > 0.9:
-                    print("Strong SELL signal: Negative sentiment confirms model prediction.")
+            elif sentiment == "negative" and probability > 0.9:
+                print("Sentiment Suggests SELL.")
+                if prediction < lower_sell_threshold:
+                    print("Model Suggests Sell.")
                     if self.last_trade == "buy":
                         self.sell_all()
                     order = self.create_order(
