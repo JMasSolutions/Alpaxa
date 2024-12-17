@@ -72,6 +72,8 @@ def prepare_stock_data(file_path, sequence_length=10):
     print(f"Target Shape: {target.shape}")
     print("\nFirst 5 Scaled Features:")
     print(scaled_features.head())
+    scaled_features.to_csv("data/scaled_features.csv", index=False)
+    target.to_csv("data/target.csv", index=False)
 
     # Step 3: Create sequences
     X, y = create_sequences(scaled_features.values, target.values, sequence_length)
