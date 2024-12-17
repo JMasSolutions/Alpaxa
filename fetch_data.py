@@ -88,7 +88,7 @@ else:
         }
         for future in as_completed(futures):
             sentiment_scores.append(future.result())
-            time.sleep(1)  # Add a small delay to reduce API pressure
+            time.sleep(1)
 
     # Add sentiment scores to the DataFrame
     data["Sentiment_Score"] = sentiment_scores
