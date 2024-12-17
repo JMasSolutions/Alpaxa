@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader, Dataset, random_split
 import pandas as pd
 import numpy as np
 from sklearn.utils.class_weight import compute_class_weight
-from lstm_model import LSTMD
 from helpful_functions.useful_functions import get_device
 
 # =====================
