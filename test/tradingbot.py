@@ -1,16 +1,12 @@
-import yfinance
 from lumibot.brokers import Alpaca
 from lumibot.backtesting import YahooDataBacktesting
 from lumibot.strategies.strategy import Strategy
-from lumibot.traders import Trader
 from datetime import datetime
-from finbert_utils import estimate_sentiment
+from helpful_functions.finbert_utils import estimate_sentiment
 from alpaca_trade_api_fixed import REST
 from timedelta import Timedelta
 import csv
 import requests
-
-from main import account
 
 # Path to CSV File
 file_path = "/Users/joanmascastella/Documents/ALPAXA/API_KEYS.csv"

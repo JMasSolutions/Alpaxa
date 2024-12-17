@@ -3,7 +3,7 @@ import requests
 import yfinance as yf
 import pandas as pd
 import pandas_ta as ta
-from finbert_utils import estimate_sentiment
+from helpful_functions.finbert_utils import estimate_sentiment
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed

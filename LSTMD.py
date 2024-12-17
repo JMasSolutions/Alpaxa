@@ -1,6 +1,5 @@
-import torch
 import torch.nn as nn
-from useful_functions import get_device
+from helpful_functions.useful_functions import get_device
 
 # Get Device
 device = get_device()
