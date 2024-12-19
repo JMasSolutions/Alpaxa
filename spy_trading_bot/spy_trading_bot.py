@@ -20,14 +20,14 @@ def setup_logging():
     Configures the logging settings to log to both a file and the console.
     """
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)  # Changed from INFO to DEBUG
 
     # Formatter for file logs
     file_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
 
     # File Handler
     file_handler = logging.FileHandler('trading_bot.log')
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(logging.DEBUG)  # Capture DEBUG logs in file
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
 
@@ -36,7 +36,7 @@ def setup_logging():
 
     # Console Handler
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.INFO)  # Keep console at INFO to reduce verbosity
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 
@@ -266,6 +266,8 @@ def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
         logger.error(f"Feature count mismatch: Expected 13, got {df_features.shape[1]}")
         raise ValueError(f"Feature count mismatch: Expected 13, got {df_features.shape[1]}")
 
+    logger.debug(f"Prepared Data:\n{df_features.tail()}")  # Add this line
+
     logger.info("Data preparation successful.")
     return df_features
 
@@ -285,7 +287,7 @@ class LightGBMTrader(Strategy):
 
         # Load the pre-trained LightGBM model
         self.model = load_model('model/lightgbm_model.pkl')
-
+        print(f"Model Classes: {self.model.classes_}")  # Add this line
         # Load scaler used during training
         self.scaler = load_scaler('model/scaler.pkl')
 
@@ -303,6 +305,7 @@ class LightGBMTrader(Strategy):
                 logger.error(f"Expected {expected_features} features, but got {data.shape[1]}")
                 raise ValueError(f"Expected {expected_features} features, but got {data.shape[1]}")
             scaled_features = self.scaler.transform(data)
+            logger.debug(f"Scaled Features:\n{scaled_features}")
             return scaled_features
         except Exception as e:
             logger.error(f"Error during data scaling: {e}")
@@ -317,6 +320,7 @@ class LightGBMTrader(Strategy):
             cash = self.get_cash()
             last_price = self.get_last_price(self.symbol)
             quantity = round(cash * self.cash_at_risk / last_price)
+            logger.debug(f"Position Sizing - Cash: {cash}, Last Price: {last_price}, Quantity: {quantity}")
             return cash, last_price, quantity
         except Exception as e:
             logger.error(f"Error during position sizing: {e}")
@@ -327,14 +331,17 @@ class LightGBMTrader(Strategy):
         """
         Main trading logic executed at each trading interval.
         """
+        logger.debug("on_trading_iteration called.")
         logger.info(f"Starting trading iteration for {self.symbol}...")
 
         try:
             # Step 1: Fetch and prepare the latest data
             data = prepare_latest_data(self.symbol)
+            logger.debug(f"Data fetched for trading iteration:\n{data.tail()}")
 
             # Step 2: Get the most recent row for prediction
             latest_data = data.tail(1)
+            logger.debug(f"Latest data for prediction:\n{latest_data}")
             if latest_data.empty:
                 logger.warning("No data available for prediction.")
                 return
@@ -358,17 +365,23 @@ class LightGBMTrader(Strategy):
 
             # Handle any missing values if necessary
             latest_features = latest_features.fillna(0)
+            logger.debug(f"Features after handling missing values:\n{latest_features}")
+
+            # Log the features being used for prediction
+            logger.debug(f"Latest Features:\n{latest_features}")
 
             # Scale the features
             X = self.preprocess_realtime_data(latest_features)
+            logger.debug(f"Scaled Features:\n{X}")
 
             # Step 4: Make prediction using the LightGBM model
             prediction = self.model.predict(X)[0]
-            prediction_proba = self.model.predict_proba(X)[0][1]  # Probability of class 1
+            prediction_proba_buy = self.model.predict_proba(X)[0][1]  # Probability of class 1 (Buy)
+            prediction_proba_sell = self.model.predict_proba(X)[0][0]  # Probability of class 0 (Sell)
 
+            # Log the prediction and probabilities
             logger.info(
-                f"Model Prediction: {'Up' if prediction == 1 else 'Down'} with probability {prediction_proba:.2f}"
-            )
+                f"Model Prediction: {'Buy' if prediction == 1 else 'Sell'} with Buy probability {prediction_proba_buy:.4f} and Sell probability {prediction_proba_sell:.4f}")
 
             # Step 5: Determine position sizing
             cash, last_price, quantity = self.position_sizing()
@@ -378,11 +391,16 @@ class LightGBMTrader(Strategy):
 
             # Step 6: Define thresholds
             buy_threshold = 0.6  # Probability above which to buy
-            sell_threshold = 0.4  # Probability above which to sell
+            sell_threshold = 0.6  # Probability above which to sell
+
+            # Log the thresholds and check against prediction probabilities
+            logger.debug(f"Buy Threshold: {buy_threshold}, Sell Threshold: {sell_threshold}")
+            logger.debug(
+                f"Prediction Buy Probability: {prediction_proba_buy:.4f}, Prediction Sell Probability: {prediction_proba_sell:.4f}")
 
             # Step 7: Trading logic
-            if prediction == 1 and prediction_proba > buy_threshold:
-                logger.info("Model suggests BUY.")
+            if prediction == 1 and prediction_proba_buy > buy_threshold:
+                print("Model suggests BUY." + str(prediction_proba_buy))
                 if self.last_trade == "sell":
                     self.sell_all()
                     logger.info("Sold all previous short positions.")
@@ -400,8 +418,8 @@ class LightGBMTrader(Strategy):
                 )
                 self.last_trade = "buy"
 
-            elif prediction == 0 and prediction_proba > sell_threshold:
-                logger.info("Model suggests SELL.")
+            elif prediction == 0 and prediction_proba_sell > sell_threshold:
+                print("Model suggests SELL." + str(prediction_proba_sell))
                 if self.last_trade == "buy":
                     self.sell_all()
                     logger.info("Sold all previous long positions.")
@@ -460,8 +478,8 @@ def main():
         return
 
     # Define backtesting parameters
-    start_date = datetime(2020, 1, 1)
-    end_date = datetime(2024, 10, 15)
+    start_date = datetime(2023, 1, 1)  # Temporarily narrowed for testing
+    end_date = datetime(2023, 12, 31)  # Temporarily narrowed for testing
 
     # Run backtest
     logger.info("Starting backtest...")
@@ -485,6 +503,7 @@ def main():
     # except Exception as e:
     #     logger.error(f"Error during live trading: {e}")
     #     logger.error(traceback.format_exc())
+
 
 if __name__ == "__main__":
     main()

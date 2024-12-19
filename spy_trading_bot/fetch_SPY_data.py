@@ -4,50 +4,102 @@ import pandas as pd
 import pandas_ta as ta
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Define a consistent feature list
+FEATURES = [
+    "Adj Close", "SMA_14", "EMA_14", "RSI", "BB_upper", "BB_middle", "BB_lower",
+    "USD_JPY", "VIX", "Gold", "Oil", "Monthly_Return", "MACD", "ATR", "OBV",
+    "Adj_Close_Lag_1", "Adj_Close_Lag_2", "Adj_Close_Lag_3", "Adj_Close_Lag_5",
+    "Momentum", "Volatility", "Day_of_Week", "Month"
+]
+
+# Function to calculate additional technical indicators
+def calculate_additional_indicators(df):
+    print("Calculating additional technical indicators...")
+
+    # MACD
+    macd = ta.macd(df['Adj Close']['SPY'], fast=12, slow=26, signal=9)
+    df['MACD'] = macd['MACDh_12_26_9'] if macd is not None else 0
+
+    # ATR
+    df['ATR'] = ta.atr(df['High']['SPY'], df['Low']['SPY'], df['Adj Close']['SPY'], length=14)
+
+    # OBV
+    df['OBV'] = ta.obv(df['Adj Close']['SPY'], df['Volume']['SPY'])
+
+    # Volatility (Standard Deviation of Returns)
+    df['Volatility'] = df['Adj Close']['SPY'].pct_change().rolling(window=14).std()
+
+    return df
+
+# Function to add lag features
+def add_lag_features(df, lags=[1, 2, 3, 5]):
+    print("Adding lag features...")
+    for lag in lags:
+        df[f'Adj_Close_Lag_{lag}'] = df['Adj Close']['SPY'].shift(lag)
+    return df
+
+# Function to calculate momentum
+def calculate_momentum(df, window=10):
+    print("Calculating momentum indicators...")
+    df['Momentum'] = ta.mom(df['Adj Close']['SPY'], length=window)
+    return df
+
+# Function to add date-based features
+def add_date_features(df):
+    print("Adding date-based features...")
+    df['Day_of_Week'] = df.index.dayofweek  # 0=Monday, 6=Sunday
+    df['Month'] = df.index.month
+    return df
 
 # Function to prepare the dataset
 def prepare_stock_data(output_file):
-    """
-    Fetches and processes stock data with technical indicators, sentiment analysis,
-    and target creation. Saves the processed data as a CSV file.
-    """
-    # Check if the processed data file already exists
     if os.path.exists(output_file):
         print(f"Loading data from {output_file}...")
-        data = pd.read_csv(output_file, index_col=0, parse_dates=True, date_format='%Y-%m-%d')
+        data = pd.read_csv(output_file, index_col=0, parse_dates=True)
     else:
         print("Fetching data...")
-        # Step 1: Fetch stock data using Yahoo Finance for SPY, USD/JPY, VIX, Gold, and Oil
         tickers = ["SPY", "JPY=X", "^VIX", "GC=F", "CL=F"]
-        data = yf.download(tickers, interval="1d", period="max")
+        data = yf.download(tickers, interval="1d", period="5y")
 
-        # Step 2: Add Technical Indicators for SPY
+        # Technical Indicators
         print("Calculating technical indicators...")
         data['SMA_14'] = data['Adj Close']['SPY'].rolling(window=14).mean()
         data['EMA_14'] = ta.ema(data['Adj Close']['SPY'], length=14)
         data['RSI'] = ta.rsi(data['Adj Close']['SPY'], length=14)
         bb = ta.bbands(data['Adj Close']['SPY'], length=20)
-        data['BB_upper'], data['BB_middle'], data['BB_lower'] = bb.iloc[:, 0], bb.iloc[:, 1], bb.iloc[:, 2]
+        data['BB_upper'] = bb['BBU_20_2.0']
+        data['BB_middle'] = bb['BBM_20_2.0']
+        data['BB_lower'] = bb['BBL_20_2.0']
 
-        # Step 3: Add Market Indicators (USD/JPY exchange rate, VIX index, Gold, and Oil prices)
+        # Additional Indicators
+        data = calculate_additional_indicators(data)
+
+        # Lag Features
+        data = add_lag_features(data)
+
+        # Momentum
+        data = calculate_momentum(data)
+
+        # Date Features
+        data = add_date_features(data)
+
+        # Market Indicators
         print("Adding market indicators...")
         data['USD_JPY'] = data['Adj Close']['JPY=X']
         data['VIX'] = data['Adj Close']['^VIX']
         data['Gold'] = data['Adj Close']['GC=F']
         data['Oil'] = data['Adj Close']['CL=F']
 
-        # Step 4: Add Returns and Price Change for SPY
-        print("Calculating returns and price change...")
+        # Returns and Target
+        print("Calculating returns and target...")
         data['Monthly_Return'] = data['Adj Close']['SPY'].pct_change()
-
-        # Step 5: Create Target Variable (Binary: Up/Down)
         data['Target'] = (data['Adj Close']['SPY'].shift(-1) > data['Adj Close']['SPY']).astype(int)
 
-        # Step 6: Drop rows with NaN values
+        # Clean up NaN values
         data = data.dropna()
 
-        # Step 7: Save the processed DataFrame to a CSV file
+        # Save
         data.to_csv(output_file)
         print(f"Data saved to {output_file}.")
 
@@ -56,10 +108,5 @@ def prepare_stock_data(output_file):
 # Main block
 if __name__ == "__main__":
     output_file = "data/spy_daily_data.csv"
-
-    # Prepare the stock data
     processed_data = prepare_stock_data(output_file)
-
-    # Display relevant columns from the DataFrame
-    print("\nFinal DataFrame:")
-    print(processed_data[['Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'BB_upper', 'BB_middle', 'BB_lower', 'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Target']])
+    print(processed_data[FEATURES + ['Target']].head())
