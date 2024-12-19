@@ -1,65 +1,25 @@
-import csv
 import yfinance as yf
 import pandas as pd
 import pandas_ta as ta
 import os
 
-# Define a consistent feature list
-FEATURES = [
-    "Adj Close", "SMA_14", "EMA_14", "RSI", "BB_upper", "BB_middle", "BB_lower",
-    "USD_JPY", "VIX", "Gold", "Oil", "Monthly_Return", "MACD", "ATR", "OBV",
-    "Adj_Close_Lag_1", "Adj_Close_Lag_2", "Adj_Close_Lag_3", "Adj_Close_Lag_5",
-    "Momentum", "Volatility", "Day_of_Week", "Month",
-    "XLK", "XLF", "XLV", "XLE", "XLY"  # Sector ETFs
-]
-
-# Function to calculate additional technical indicators
-def calculate_additional_indicators(df):
-    print("Calculating additional technical indicators...")
-
-    # MACD
-    macd = ta.macd(df['Adj Close']['SPY'], fast=12, slow=26, signal=9)
-    df['MACD'] = macd['MACDh_12_26_9'] if macd is not None else 0
-
-    # ATR
-    df['ATR'] = ta.atr(df['High']['SPY'], df['Low']['SPY'], df['Adj Close']['SPY'], length=14)
-
-    # OBV
-    df['OBV'] = ta.obv(df['Adj Close']['SPY'], df['Volume']['SPY'])
-
-    # Volatility (Standard Deviation of Returns)
-    df['Volatility'] = df['Adj Close']['SPY'].pct_change().rolling(window=14).std()
-
-    return df
+# Function to flatten and rename columns
+def flatten_columns(data):
+    """
+    Flattens a MultiIndex DataFrame into a single index and renames columns.
+    """
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = ['_'.join(col).strip() for col in data.columns]
+    return data
 
 # Function to add lag features
-def add_lag_features(df, lags=[1, 2, 3, 5]):
-    print("Adding lag features...")
+def add_lag_features(data, column, lags):
+    """
+    Adds lagged features for a specified column.
+    """
     for lag in lags:
-        df[f'Adj_Close_Lag_{lag}'] = df['Adj Close']['SPY'].shift(lag)
-    return df
-
-# Function to calculate momentum
-def calculate_momentum(df, window=10):
-    print("Calculating momentum indicators...")
-    df['Momentum'] = ta.mom(df['Adj Close']['SPY'], length=window)
-    return df
-
-# Function to add date-based features
-def add_date_features(df):
-    print("Adding date-based features...")
-    df['Day_of_Week'] = df.index.dayofweek  # 0=Monday, 6=Sunday
-    df['Month'] = df.index.month
-    return df
-
-# Function to add sector ETF performance
-def add_sector_performance(df):
-    print("Adding sector ETF performance...")
-    sector_etfs = ["XLK", "XLF", "XLV", "XLE", "XLY"]  # Technology, Financials, Healthcare, Energy, Discretionary
-    for etf in sector_etfs:
-        sector_data = yf.download(etf, interval="1d", period="max")['Adj Close']
-        df[etf] = sector_data
-    return df
+        data[f"{column}_Lag_{lag}"] = data[column].shift(lag)
+    return data
 
 # Function to prepare the dataset
 def prepare_stock_data(output_file):
@@ -68,45 +28,65 @@ def prepare_stock_data(output_file):
         data = pd.read_csv(output_file, index_col=0, parse_dates=True)
     else:
         print("Fetching data...")
-        tickers = ["SPY", "JPY=X", "^VIX", "GC=F", "CL=F"]
-        data = yf.download(tickers, interval="1d", period="max")
+        tickers = ["SPY", "JPY=X", "^VIX", "GC=F", "CL=F", "XLF", "XLK", "XLV", "XLE", "XLY"]
+        data = yf.download(tickers, interval="1d", period="max", group_by="ticker")
+
+        # Flatten MultiIndex DataFrame
+        data = flatten_columns(data)
+        print(f"Flattened columns: {data.columns.tolist()}")  # Debug: Inspect columns
 
         # Technical Indicators
         print("Calculating technical indicators...")
-        data['SMA_14'] = data['Adj Close']['SPY'].rolling(window=14).mean()
-        data['EMA_14'] = ta.ema(data['Adj Close']['SPY'], length=14)
-        data['RSI'] = ta.rsi(data['Adj Close']['SPY'], length=14)
-        bb = ta.bbands(data['Adj Close']['SPY'], length=20)
-        data['BB_upper'] = bb['BBU_20_2.0']
-        data['BB_middle'] = bb['BBM_20_2.0']
-        data['BB_lower'] = bb['BBL_20_2.0']
+        data['SMA_14'] = data['SPY_Adj Close'].rolling(window=14).mean()
+        data['EMA_14'] = ta.ema(data['SPY_Adj Close'], length=14)
+        data['RSI'] = ta.rsi(data['SPY_Adj Close'], length=14)
+        bb = ta.bbands(data['SPY_Adj Close'], length=20)
+        if bb is not None:
+            data['BB_upper'] = bb['BBU_20_2.0']
+            data['BB_middle'] = bb['BBM_20_2.0']
+            data['BB_lower'] = bb['BBL_20_2.0']
+        else:
+            print("Bollinger Bands calculation failed.")
+            data['BB_upper'], data['BB_middle'], data['BB_lower'] = 0, 0, 0
 
         # Additional Indicators
-        data = calculate_additional_indicators(data)
+        print("Adding additional indicators...")
+        macd = ta.macd(data['SPY_Adj Close'], fast=12, slow=26, signal=9)
+        if macd is not None:
+            data['MACD'] = macd['MACDh_12_26_9']
+        else:
+            print("MACD calculation failed.")
+            data['MACD'] = 0
+        data['ATR'] = ta.atr(data['SPY_High'], data['SPY_Low'], data['SPY_Adj Close'], length=14)
+        data['OBV'] = ta.obv(data['SPY_Adj Close'], data['SPY_Volume'])
 
-        # Lag Features
-        data = add_lag_features(data)
-
-        # Momentum
-        data = calculate_momentum(data)
-
-        # Date Features
-        data = add_date_features(data)
-
-        # Sector Performance
-        data = add_sector_performance(data)
+        # Add Lag Features
+        print("Adding lagged features...")
+        data = add_lag_features(data, "SPY_Adj Close", [1, 2, 3, 5])
 
         # Market Indicators
         print("Adding market indicators...")
-        data['USD_JPY'] = data['Adj Close']['JPY=X']
-        data['VIX'] = data['Adj Close']['^VIX']
-        data['Gold'] = data['Adj Close']['GC=F']
-        data['Oil'] = data['Adj Close']['CL=F']
+        data['USD_JPY'] = data['JPY=X_Adj Close']
+        data['VIX'] = data['^VIX_Adj Close']
+        data['Gold'] = data['GC=F_Adj Close']
+        data['Oil'] = data['CL=F_Adj Close']
+
+        # Sector ETF Performance
+        print("Adding sector ETF performance...")
+        sector_etfs = ["XLF", "XLK", "XLV", "XLE", "XLY"]
+        for etf in sector_etfs:
+            column_name = f"{etf}_Adj_Close"
+            data[column_name] = data[f"{etf}_Adj Close"]
 
         # Returns and Target
         print("Calculating returns and target...")
-        data['Monthly_Return'] = data['Adj Close']['SPY'].pct_change()
-        data['Target'] = (data['Adj Close']['SPY'].shift(-1) > data['Adj Close']['SPY']).astype(int)
+        data['Monthly_Return'] = data['SPY_Adj Close'].pct_change()
+        data['Target'] = (data['SPY_Adj Close'].shift(-1) > data['SPY_Adj Close']).astype(int)
+
+        # Date-based Features
+        print("Adding date-based features...")
+        data['Day_of_Week'] = data.index.dayofweek  # 0 = Monday, 6 = Sunday
+        data['Month'] = data.index.month
 
         # Clean up NaN values
         data = data.dropna()
@@ -120,5 +100,8 @@ def prepare_stock_data(output_file):
 # Main block
 if __name__ == "__main__":
     output_file = "data/spy_daily_data.csv"
-    processed_data = prepare_stock_data(output_file)
-    print(processed_data[FEATURES + ['Target']].head())
+    try:
+        processed_data = prepare_stock_data(output_file)
+        print(processed_data.head())
+    except Exception as e:
+        print(f"An error occurred: {e}")
