@@ -30,17 +30,6 @@ def scale_processD(df, scaler):
     scaled_data = scaler.fit_transform(df.drop(columns=["Target"]))
     return pd.DataFrame(scaled_data, columns=df.columns[:-1], index=df.index), df["Target"]
 
-# Create sequences for LSTM
-def create_sequences(features, target, sequence_length):
-    """
-    Creates sequences of data for LSTM input.
-    Returns the sequences and corresponding targets.
-    """
-    X, y = [], []
-    for i in range(len(features) - sequence_length):
-        X.append(features[i:i + sequence_length])
-        y.append(target[i + sequence_length])
-    return np.array(X), np.array(y)
 
 # PyTorch Dataset class for our data
 class StockDataSet(Dataset):
@@ -93,7 +82,7 @@ def prepare_stock_data(file_path, sequence_length=10):
 
 # Main block
 if __name__ == "__main__":
-    file_path = "data/tsla_daily_data.csv"
+    file_path = "data/spy_daily_data.csv"
 
     # Prepare datasets
     train_dataset, test_dataset = prepare_stock_data(file_path)
