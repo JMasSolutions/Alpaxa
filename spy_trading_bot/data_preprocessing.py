@@ -15,8 +15,8 @@ def clean_DF(path):
     data = pd.read_csv(path, index_col=0, parse_dates=True)
 
     columns_to_keep = [
-        'Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'MACD', 'BB_upper', 'BB_middle', 'BB_lower',
-        'ATR', 'Stoch_K', 'Stoch_D', 'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Target'
+        'Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'BB_upper', 'BB_middle', 'BB_lower',
+        'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Target'
     ]
 
     # Filter the columns to keep only what matters

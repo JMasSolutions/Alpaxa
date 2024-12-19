@@ -59,19 +59,11 @@ def calculate_rsi(series, period=14):
     """
     Calculates the Relative Strength Index (RSI) for a given series.
     """
-    return ta.rsi(series, length=period)
-
-def calculate_macd(series):
-    """
-    Calculates the Moving Average Convergence Divergence (MACD) for a given series.
-    Returns the MACD histogram as a Series.
-    """
-    macd = ta.macd(series)
-    if macd is not None and not macd.empty:
-        return macd['MACDh_12_26_9']
+    rsi = ta.rsi(series, length=period)
+    if rsi is not None and not rsi.empty:
+        return rsi
     else:
-        logger.error("MACD calculation returned None or empty DataFrame.")
-        # Return a Series of zeros with the same index as the input series
+        logger.error("RSI calculation returned None or empty Series.")
         return pd.Series([0] * len(series), index=series.index)
 
 def calculate_bbands(series, length=20):
@@ -79,33 +71,48 @@ def calculate_bbands(series, length=20):
     Calculates Bollinger Bands for a given series.
     """
     bb = ta.bbands(series, length=length)
-    return bb['BBL_20_2.0'], bb['BBM_20_2.0'], bb['BBU_20_2.0']
-
-def calculate_atr(high, low, close, length=14):
-    """
-    Calculates the Average True Range (ATR) for given high, low, and close series.
-    """
-    atr = ta.atr(high, low, close, length=length)
-    return atr
+    if bb is not None and not bb.empty:
+        return bb['BBL_20_2.0'], bb['BBM_20_2.0'], bb['BBU_20_2.0']
+    else:
+        logger.error("Bollinger Bands calculation returned None or empty DataFrame.")
+        # Return Series of zeros
+        return pd.Series([0] * len(series), index=series.index), \
+               pd.Series([0] * len(series), index=series.index), \
+               pd.Series([0] * len(series), index=series.index)
 
 def calculate_stochastic(high, low, close):
     """
     Calculates the Stochastic Oscillator (%K and %D) for given high, low, and close series.
     """
     stoch = ta.stoch(high, low, close)
-    return stoch['STOCHk_14_3_3'], stoch['STOCHd_14_3_3']
+    if stoch is not None and not stoch.empty:
+        return stoch['STOCHk_14_3_3'], stoch['STOCHd_14_3_3']
+    else:
+        logger.error("Stochastic Oscillator calculation returned None or empty DataFrame.")
+        # Return Series of zeros
+        return pd.Series([0] * len(close), index=close.index), pd.Series([0] * len(close), index=close.index)
 
 def calculate_sma(series, period=14):
     """
     Calculates the Simple Moving Average (SMA) for a given series.
     """
-    return ta.sma(series, length=period)
+    sma = ta.sma(series, length=period)
+    if sma is not None and not sma.empty:
+        return sma
+    else:
+        logger.error("SMA calculation returned None or empty Series.")
+        return pd.Series([0] * len(series), index=series.index)
 
 def calculate_ema(series, period=14):
     """
     Calculates the Exponential Moving Average (EMA) for a given series.
     """
-    return ta.ema(series, length=period)
+    ema = ta.ema(series, length=period)
+    if ema is not None and not ema.empty:
+        return ema
+    else:
+        logger.error("EMA calculation returned None or empty Series.")
+        return pd.Series([0] * len(series), index=series.index)
 
 def load_model(model_path='model/lightgbm_model.pkl'):
     """
@@ -161,50 +168,47 @@ def load_alpaca_credentials(file_path):
         "ENDPOINT": endpoint
     }
 
-def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
+def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
     """
     Fetches the latest stock data with technical indicators for the specified symbol.
     Implements retries in case of transient failures.
-    Returns a DataFrame with only the specified 16 features and 'Target'.
+    Returns a DataFrame with only the specified 13 features and 'Target'.
     """
     logger.info(f"Fetching latest data for {symbol}...")
     tickers = [symbol, "JPY=X", "^VIX", "GC=F", "CL=F"]
+    data = pd.DataFrame()
 
-    for attempt in range(1, max_retries + 1):
-        try:
-            # Fetch data with sufficient period for indicators
-            data = yf.download(tickers, interval="1d", period="1mo")
-            if data.empty or data.isnull().all().all():
-                raise ValueError("Fetched data is empty or contains only NaN values.")
-            logger.info("Data fetched successfully.")
-            break  # Exit loop if successful
-        except Exception as e:
-            logger.error(f"Attempt {attempt} failed: {e}")
-            if attempt < max_retries:
-                logger.info(f"Retrying in {delay} seconds...")
-                time.sleep(delay)
-                delay *= 2  # Exponential backoff
-            else:
-                logger.critical("Max retries reached. Unable to fetch data.")
-                raise e
+    for ticker in tickers:
+        for attempt in range(1, max_retries + 1):
+            try:
+                ticker_data = yf.download(ticker, interval="1d", period="1y")
+                if ticker_data.empty or ticker_data.isnull().all().all():
+                    raise ValueError(f"Fetched data for {ticker} is empty or contains only NaN values.")
+                data[ticker] = ticker_data['Adj Close']
+                logger.info(f"Data fetched successfully for {ticker}.")
+                break
+            except Exception as e:
+                logger.error(f"Attempt {attempt} failed for {ticker}: {e}")
+                if attempt < max_retries:
+                    logger.info(f"Retrying {ticker} in {delay} seconds...")
+                    time.sleep(delay)
+                    delay *= 2
+                else:
+                    logger.critical(f"Max retries reached for {ticker}. Skipping this ticker.")
+                    raise e
 
     # Calculate technical indicators for SPY
     logger.info("Calculating technical indicators...")
     try:
         df_features = pd.DataFrame()
-        df_features['Adj Close'] = data['Adj Close'][symbol]
-        df_features['SMA_14'] = calculate_sma(data['Adj Close'][symbol], period=14)
-        df_features['EMA_14'] = calculate_ema(data['Adj Close'][symbol], period=14)
-        df_features['RSI'] = calculate_rsi(data['Adj Close'][symbol], period=14)
-        df_features['MACD'] = calculate_macd(data['Adj Close'][symbol])
-        bb_lower, bb_middle, bb_upper = calculate_bbands(data['Adj Close'][symbol], length=20)
+        df_features['Adj Close'] = data[symbol]
+        df_features['SMA_14'] = calculate_sma(data[symbol], period=14)
+        df_features['EMA_14'] = calculate_ema(data[symbol], period=14)
+        df_features['RSI'] = calculate_rsi(data[symbol], period=14)
+        bb_lower, bb_middle, bb_upper = calculate_bbands(data[symbol], length=20)
         df_features['BB_lower'] = bb_lower
         df_features['BB_middle'] = bb_middle
         df_features['BB_upper'] = bb_upper
-        df_features['ATR'] = calculate_atr(data['High'][symbol], data['Low'][symbol], data['Close'][symbol], length=14)
-        stoch_k, stoch_d = calculate_stochastic(data['High'][symbol], data['Low'][symbol], data['Close'][symbol])
-        df_features['Stoch_K'] = stoch_k
-        df_features['Stoch_D'] = stoch_d
     except Exception as e:
         logger.error(f"Error calculating technical indicators: {e}")
         logger.error(traceback.format_exc())
@@ -213,10 +217,10 @@ def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
     # Add market indicators
     logger.info("Adding market indicators...")
     try:
-        df_features['USD_JPY'] = data['Adj Close']['JPY=X']
-        df_features['VIX'] = data['Adj Close']['^VIX']
-        df_features['Gold'] = data['Adj Close']['GC=F']
-        df_features['Oil'] = data['Adj Close']['CL=F']
+        df_features['USD_JPY'] = data['JPY=X']
+        df_features['VIX'] = data['^VIX']
+        df_features['Gold'] = data['GC=F']
+        df_features['Oil'] = data['CL=F']
     except Exception as e:
         logger.error(f"Error adding market indicators: {e}")
         logger.error(traceback.format_exc())
@@ -243,16 +247,16 @@ def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
     # Drop rows with NaN values
     df_features = df_features.dropna()
 
-    # Select relevant features (16 features as specified)
+    # Select relevant features (13 features as specified)
     features = [
-        "Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
-        "BB_upper", "BB_middle", "BB_lower", "ATR",
-        "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
+        "Adj Close", "SMA_14", "EMA_14", "RSI",
+        "BB_upper", "BB_middle", "BB_lower",
+        "USD_JPY", "VIX",
         "Gold", "Oil", "Monthly_Return"
     ]
 
     try:
-        df_features = df_features[features + ['Target']]  # Include 'Target' for model training
+        df_features = df_features[features + ['Target']]  # 13 features + 'Target' = 14 columns
         logger.info(f"Selected features: {df_features.columns.tolist()}")
     except Exception as e:
         logger.error(f"Error selecting features: {e}")
@@ -260,9 +264,9 @@ def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
         raise e
 
     logger.info(f"Data shape after feature selection: {df_features.shape}")
-    if df_features.shape[1] != 17:  # 16 features + 'Target'
-        logger.error(f"Feature count mismatch: Expected 17, got {df_features.shape[1]}")
-        raise ValueError(f"Feature count mismatch: Expected 17, got {df_features.shape[1]}")
+    if df_features.shape[1] != 14:  # 13 features + 'Target'
+        logger.error(f"Feature count mismatch: Expected 14, got {df_features.shape[1]}")
+        raise ValueError(f"Feature count mismatch: Expected 14, got {df_features.shape[1]}")
 
     logger.info("Data preparation successful.")
     return df_features
@@ -296,9 +300,9 @@ class LightGBMTrader(Strategy):
         """
         try:
             logger.info(f"Features before scaling: {data.columns.tolist()}")
-            if data.shape[1] != 16:
-                logger.error(f"Expected 16 features, but got {data.shape[1]}")
-                raise ValueError(f"Expected 16 features, but got {data.shape[1]}")
+            if data.shape[1] != 14:
+                logger.error(f"Expected 14 features, but got {data.shape[1]}")
+                raise ValueError(f"Expected 14 features, but got {data.shape[1]}")
             scaled_features = self.scaler.transform(data)
             return scaled_features
         except Exception as e:
@@ -346,9 +350,9 @@ class LightGBMTrader(Strategy):
 
             # Step 3: Preprocess data (scale features)
             features = [
-                "Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
-                "BB_upper", "BB_middle", "BB_lower", "ATR",
-                "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
+                "Adj Close", "SMA_14", "EMA_14", "RSI",
+                "BB_upper", "BB_middle", "BB_lower",
+                "USD_JPY", "VIX",
                 "Gold", "Oil", "Monthly_Return"
             ]
             latest_features = latest_data[features]
@@ -364,12 +368,14 @@ class LightGBMTrader(Strategy):
             prediction_proba = self.model.predict_proba(X)[0][1]  # Probability of class 1
 
             logger.info(
-                f"Model Prediction: {'Up' if prediction == 1 else 'Down'} with probability {prediction_proba:.2f}")
+                f"Model Prediction: {'Up' if prediction == 1 else 'Down'} with probability {prediction_proba:.2f}"
+            )
 
             # Step 5: Determine position sizing
             cash, last_price, quantity = self.position_sizing()
             logger.info(
-                f"Available Cash: ${cash:.2f}, Last Price: ${last_price:.2f}, Quantity to Trade: {quantity}")
+                f"Available Cash: ${cash:.2f}, Last Price: ${last_price:.2f}, Quantity to Trade: {quantity}"
+            )
 
             # Step 6: Define thresholds
             buy_threshold = 0.6  # Probability above which to buy
@@ -387,11 +393,12 @@ class LightGBMTrader(Strategy):
                     "buy",
                     type="market",
                     take_profit_price=last_price * 1.05,  # 5% take profit
-                    stop_loss_price=last_price * 0.95   # 5% stop loss
+                    stop_loss_price=last_price * 0.95  # 5% stop loss
                 )
                 self.submit_order(order)
                 logger.info(
-                    f"BUY order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
+                    f"BUY order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}"
+                )
                 self.last_trade = "buy"
 
             elif prediction == 0 and prediction_proba > sell_threshold:
@@ -405,11 +412,12 @@ class LightGBMTrader(Strategy):
                     "sell",
                     type="market",
                     take_profit_price=last_price * 0.95,  # 5% take profit
-                    stop_loss_price=last_price * 1.05    # 5% stop loss
+                    stop_loss_price=last_price * 1.05  # 5% stop loss
                 )
                 self.submit_order(order)
                 logger.info(
-                    f"SELL order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
+                    f"SELL order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}"
+                )
                 self.last_trade = "sell"
 
             else:
