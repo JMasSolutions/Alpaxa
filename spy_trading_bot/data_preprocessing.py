@@ -13,8 +13,8 @@ def clean_DF(path):
     data = pd.read_csv(path, index_col=0, parse_dates=True)
 
     columns_to_keep = [
-        'Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'MACD', 'USD_JPY',
-        'VIX', 'Monthly_Return', 'Price_Change', 'Target'
+        'Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'MACD', 'BB_upper', 'BB_middle', 'BB_lower',
+        'ATR', 'Stoch_K', 'Stoch_D', 'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Price_Change', 'Target'
     ]
 
     # Filter the columns to keep only what matters
@@ -30,7 +30,6 @@ def scale_processD(df, scaler):
     scaled_data = scaler.fit_transform(df.drop(columns=["Target"]))
     return pd.DataFrame(scaled_data, columns=df.columns[:-1], index=df.index), df["Target"]
 
-
 # PyTorch Dataset class for our data
 class StockDataSet(Dataset):
     def __init__(self, X, y):
@@ -44,7 +43,7 @@ class StockDataSet(Dataset):
         return self.X[idx], self.y[idx]
 
 # Prepare and return datasets for training
-def prepare_stock_data(file_path, sequence_length=10):
+def prepare_stock_data(file_path):
     """
     Cleans, scales, and creates train/test datasets.
     """
@@ -64,16 +63,12 @@ def prepare_stock_data(file_path, sequence_length=10):
     scaled_features.to_csv("data/scaled_features.csv", index=False)
     target.to_csv("data/target.csv", index=False)
 
-    # Step 3: Create sequences
-    X, y = create_sequences(scaled_features.values, target.values, sequence_length)
-    print(f"\nFeature Shape: {X.shape} \nTarget Shape: {y.shape}")
+    # Step 3: Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(scaled_features, target, test_size=0.2, shuffle=False)
 
-    # Step 4: Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
-
-    # Step 5: Create PyTorch Datasets
-    train_dataset = StockDataSet(X_train, y_train)
-    test_dataset = StockDataSet(X_test, y_test)
+    # Step 4: Create PyTorch Datasets
+    train_dataset = StockDataSet(X_train.values, y_train.values)
+    test_dataset = StockDataSet(X_test.values, y_test.values)
 
     print(f"\nTraining Dataset Length: {len(train_dataset)}")
     print(f"Testing Dataset Length: {len(test_dataset)}")

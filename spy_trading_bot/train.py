@@ -1,111 +1,55 @@
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
-import xgboost as xgb
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from lightgbm import LGBMClassifier
+from imblearn.over_sampling import SMOTE
+from collections import Counter
+import joblib  # For saving and loading the model
 
-# Load data from CSV files
+# Load data
 scaled_features = pd.read_csv('data/scaled_features.csv')
 target = pd.read_csv('data/target.csv')
 
-# Convert to numpy arrays
+# Prepare data
 X = scaled_features.values
-y = target.values.flatten()
+y = target['Target'].values
 
-# Split data into training and validation sets
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, shuffle=False)
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-# SVM with RandomizedSearchCV
-def svm_classifier():
-    svm = SVC()
-    params = {
-        'C': [0.1, 1, 10, 100],
-        'kernel': ['linear', 'rbf'],
-        'gamma': ['scale', 'auto', 0.001, 0.01]
-    }
-    tuned_svm = RandomizedSearchCV(svm, param_distributions=params, n_iter=10, scoring='accuracy', cv=6, random_state=42, n_jobs=-1)
-    return tuned_svm
+# Select all features for LightGBM
+important_features = scaled_features.columns  # Keeping all features for LightGBM
+X_important = scaled_features[important_features].values
 
-# Random Forest with RandomizedSearchCV
-def rf_classifier():
-    rf = RandomForestClassifier(random_state=42)
-    params = {
-        'n_estimators': [50, 100, 150],
-        'max_depth': [5, 10, 15],
-        'min_samples_split': [2, 5],
-    }
-    tuned_rf = RandomizedSearchCV(rf, param_distributions=params, n_iter=5, scoring='accuracy', cv=4, random_state=42, n_jobs=-1)
-    return tuned_rf
+# Handle class imbalance using SMOTE
+print(f"Original class distribution: {Counter(y)}")
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_important, y)
+print(f"Class distribution after SMOTE: {Counter(y_resampled)}")
 
-# XGBoost with RandomizedSearchCV
-def gradient_boosting_classifier():
-    xgb_classifier = xgb.XGBClassifier(eval_metric='mlogloss', random_state=42)
-    params = {
-        'n_estimators': [50, 100],
-        'max_depth': [3, 5],
-        'learning_rate': [0.1, 0.01],
-        'subsample': [0.8, 1.0],
-    }
-    tuned_xgb = RandomizedSearchCV(xgb_classifier, param_distributions=params, n_iter=5, scoring='accuracy', cv=4, random_state=42, n_jobs=-1)
-    return tuned_xgb
+# Transform X_test to include all selected features
+X_test_important = pd.DataFrame(X_test, columns=scaled_features.columns)[important_features].values
 
-# k-NN with RandomizedSearchCV
-def knn_classifier():
-    knn = KNeighborsClassifier()
-    params = {
-        'n_neighbors': [3, 5, 7],
-        'weights': ['uniform', 'distance'],
-        'metric': ['euclidean', 'manhattan'],
-    }
-    tuned_knn = RandomizedSearchCV(knn, param_distributions=params, n_iter=5, scoring='accuracy', cv=4, random_state=42, n_jobs=-1)
-    return tuned_knn
+# Train LightGBM
+lgbm = LGBMClassifier(random_state=42)
+lgbm.fit(X_resampled, y_resampled)
 
-# MLP with RandomizedSearchCV
-def mlp_classifier():
-    mlp = MLPClassifier(max_iter=500, random_state=42)
-    params = {
-        'hidden_layer_sizes': [(64,), (64, 32)],
-        'alpha': [0.0001, 0.001],
-        'learning_rate_init': [0.001, 0.01],
-    }
-    tuned_mlp = RandomizedSearchCV(mlp, param_distributions=params, n_iter=5, scoring='accuracy', cv=4, random_state=42, n_jobs=-1)
-    return tuned_mlp
+# Evaluate LightGBM
+lgbm_accuracy = accuracy_score(y_test, lgbm.predict(X_test_important))
+print(f'LightGBM Accuracy: {lgbm_accuracy}')
 
-# List of classifiers
-classifiers = {
-    'SVM': svm_classifier(),
-    'Random Forest': rf_classifier(),
-    'XGBoost': gradient_boosting_classifier(),
-    'k-NN': knn_classifier(),
-    'MLP': mlp_classifier()
-}
+# Save the trained LightGBM model
+joblib.dump(lgbm, 'lightgbm_model.pkl')
+print("Model saved as lightgbm_model.pkl")
 
-best_val_accuracy = 0
-best_model = None
-best_model_name = None
+# Load the model for inference
+loaded_model = joblib.load('lightgbm_model.pkl')
+print("Model loaded successfully!")
 
-# Evaluate each classifier
-for name, clf in classifiers.items():
-    clf.fit(X_train, y_train)
-    val_predictions = clf.predict(X_val)
-    val_accuracy = accuracy_score(y_val, val_predictions)
-    if val_accuracy > best_val_accuracy:
-        best_val_accuracy = val_accuracy
-        best_model = clf
-        best_model_name = name
+# Example inference
+# Replace `new_data` with the actual data for which you want predictions
+# Ensure `new_data` has the same features and preprocessing applied as the training data
+new_data = X_test_important[:5]  # Example: using the first 5 rows of test data
+predictions = loaded_model.predict(new_data)
 
-# Evaluate the best model on the test set 100 times
-test_accuracies = []
-
-for _ in range(100):
-    val_predictions = best_model.predict(X_val)
-    test_accuracy = accuracy_score(y_val, val_predictions)
-    test_accuracies.append(test_accuracy)
-
-print(f'Best Model: {best_model_name}')
-print(f'Best Params: {best_model.best_params_}')
-print(f'Average Test Accuracy: {np.mean(test_accuracies):.4f}')
+print("Predictions:", predictions)
