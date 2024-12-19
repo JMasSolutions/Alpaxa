@@ -8,66 +8,30 @@ from imblearn.over_sampling import SMOTE
 import joblib
 import os
 
-# Define a consistent feature list
-FEATURES = [
-    "SPY_Adj_Close", "SPY_Open", "SPY_High", "SPY_Low", "SPY_Close", "SPY_Volume",
-    "SMA_14", "EMA_14", "RSI", "BB_upper", "BB_middle", "BB_lower",
-    "USD_JPY", "VIX", "Gold", "Oil", "Monthly_Return", "MACD", "ATR", "OBV",
-    "Momentum", "Volatility", "Day_of_Week", "Month"
-]
+# Dynamically derive features from the dataset after loading
+def get_features(df):
+    return [col for col in df.columns if col not in ["Target"]]
 
-# Generate lag features
-def add_lag_features(data, column, lags):
-    for lag in lags:
-        data[f"{column}_Lag_{lag}"] = data[column].shift(lag)
-    return data
-
-# Generate momentum
-def add_momentum(data, column, window=10):
-    data["Momentum"] = data[column].diff(window)
-    return data
-
-# Generate volatility
-def add_volatility(data, column, window=14):
-    data["Volatility"] = data[column].pct_change().rolling(window=window).std()
-    return data
-
-# Formatting the DataFrame to our model's liking
+# Formatting the DataFrame
 def clean_DF(path):
+    """
+    Cleans the raw data and keeps only relevant columns.
+    Removes rows with NaN values and validates required columns.
+    """
     data = pd.read_csv(path, index_col=0, parse_dates=True)
     data.columns = data.columns.str.replace(' ', '_')  # Standardize column names
 
-    # Ensure the required columns exist
-    required_columns = ["SPY_Adj_Close"]
-    missing_columns = [col for col in required_columns if col not in data.columns]
-    if missing_columns:
-        raise ValueError(f"Missing required columns: {missing_columns}")
+    # Drop rows with NaN values
+    data = data.dropna()
+    return data
 
-    # Generate lag features
-    data = add_lag_features(data, "SPY_Adj_Close", [1, 2, 3, 5])
-
-    # Generate momentum
-    data = add_momentum(data, "SPY_Adj_Close")
-
-    # Generate volatility
-    data = add_volatility(data, "SPY_Adj_Close")
-
-    # Add date features
-    data["Day_of_Week"] = data.index.dayofweek
-    data["Month"] = data.index.month
-
-    # Validate columns
-    missing_features = [col for col in FEATURES + ["Target"] if col not in data.columns]
-    if missing_features:
-        raise ValueError(f"Missing required columns: {missing_features}")
-
-    # Filter relevant columns
-    cleaned_data = data[FEATURES + ["Target"]].dropna()
-    return cleaned_data
-
-# Scale & preprocess data
+# Scale and preprocess data
 def scale_processD(df, scaler, balance_data=False):
-    X = df[FEATURES]
+    """
+    Scales the data, splits into train/test sets, and balances training data if specified.
+    """
+    features = get_features(df)  # Dynamically fetch feature columns
+    X = df[features]
     y = df["Target"]
 
     # Train-test split based on time
@@ -87,9 +51,12 @@ def scale_processD(df, scaler, balance_data=False):
         smote = SMOTE(random_state=42)
         X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
 
+    # Dynamically derive feature names post-scaling
+    scaled_features = [f"Feature_{i}" for i in range(X_train_scaled.shape[1])]
+
     # Convert scaled data back to DataFrame for easier handling
-    X_train_scaled = pd.DataFrame(X_train_scaled, columns=FEATURES)
-    X_test_scaled = pd.DataFrame(X_test_scaled, columns=FEATURES, index=X_test.index)
+    X_train_scaled = pd.DataFrame(X_train_scaled, columns=scaled_features)
+    X_test_scaled = pd.DataFrame(X_test_scaled, columns=scaled_features, index=X_test.index)
 
     return X_train_scaled, X_test_scaled, y_train, y_test
 
@@ -107,12 +74,17 @@ class StockDataSet(Dataset):
 
 # Prepare and return datasets for training
 def prepare_stock_data(file_path, balance_data=False):
+    """
+    Cleans, scales, and prepares train/test datasets.
+    """
+    # Step 1: Clean the data
     df = clean_DF(file_path)
     print("Cleaned DataFrame:")
     print(df.head())
 
     scaler = MinMaxScaler(feature_range=(-1, 1))
 
+    # Step 2: Scale features and split
     X_train_scaled, X_test_scaled, y_train, y_test = scale_processD(df, scaler, balance_data=balance_data)
 
     # Save processed data
@@ -138,6 +110,6 @@ def prepare_stock_data(file_path, balance_data=False):
 
 # Main block
 if __name__ == "__main__":
-    file_path = "data/spy_daily_data.csv"
+    file_path = "data/spy_extended_features.csv"
     train_dataset, test_dataset = prepare_stock_data(file_path, balance_data=True)
     print("\nData preparation complete. Datasets are ready for training.")
