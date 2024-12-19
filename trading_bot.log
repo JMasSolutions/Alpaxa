@@ -1,0 +1,20 @@
+2024-12-19 13:01:43,395:ERROR:__main__:Error cleaning data: [Errno 2] No such file or directory: '../data/spy_daily_data.csv'
+2024-12-19 13:01:43,395:ERROR:__main__:Error preparing stock data: [Errno 2] No such file or directory: '../data/spy_daily_data.csv'
+2024-12-19 13:01:43,395:CRITICAL:__main__:Data preparation failed: [Errno 2] No such file or directory: '../data/spy_daily_data.csv'
+2024-12-19 13:01:55,718:INFO:__main__:Data cleaning successful.
+2024-12-19 13:01:55,718:INFO:__main__:Cleaned DataFrame:
+2024-12-19 13:01:55,719:INFO:__main__:                     Adj Close     SMA_14  ...  Price_Change  Target
+Price                                      ...                      
+2000-08-30  33.400001525878906  96.503208  ...     -0.361496     1.0
+2000-08-31  33.099998474121094  96.729846  ...     -0.351931     1.0
+2000-09-01  33.380001068115234  96.877585  ...     -0.360527     0.0
+2000-10-02  32.150001525878906  93.392988  ...     -0.357720     0.0
+2000-10-03   32.06999969482422  93.116085  ...     -0.364821     1.0
+
+[5 rows x 18 columns]
+2024-12-19 13:01:55,730:INFO:__main__:Data scaling successful.
+2024-12-19 13:01:55,752:INFO:__main__:Scaled features and target saved.
+2024-12-19 13:01:55,752:INFO:__main__:Scaler saved as scaler.pkl
+2024-12-19 13:01:55,752:INFO:__main__:Training Dataset Length: 1975
+2024-12-19 13:01:55,752:INFO:__main__:Testing Dataset Length: 494
+2024-12-19 13:01:55,752:INFO:__main__:Data preparation complete. Datasets are ready for training.

@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
+import joblib  # Import joblib to save the scaler
+import os  # To handle directory creation
 
 # Formatting the DataFrame to our model's liking
 def clean_DF(path):
@@ -63,10 +65,15 @@ def prepare_stock_data(file_path):
     scaled_features.to_csv("data/scaled_features.csv", index=False)
     target.to_csv("data/target.csv", index=False)
 
-    # Step 3: Train-test split
+    # Step 3: Save the scaler for future use
+    os.makedirs('model', exist_ok=True)  # Ensure the 'model' directory exists
+    joblib.dump(scaler, 'model/scaler.pkl')
+    print("Scaler saved as 'model/scaler.pkl'")
+
+    # Step 4: Train-test split
     X_train, X_test, y_train, y_test = train_test_split(scaled_features, target, test_size=0.2, shuffle=False)
 
-    # Step 4: Create PyTorch Datasets
+    # Step 5: Create PyTorch Datasets
     train_dataset = StockDataSet(X_train.values, y_train.values)
     test_dataset = StockDataSet(X_test.values, y_test.values)
 
