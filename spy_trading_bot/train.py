@@ -39,11 +39,11 @@ lgbm_accuracy = accuracy_score(y_test, lgbm.predict(X_test_important))
 print(f'LightGBM Accuracy: {lgbm_accuracy}')
 
 # Save the trained LightGBM model
-joblib.dump(lgbm, 'lightgbm_model.pkl')
+joblib.dump(lgbm, 'model/lightgbm_model.pkl')
 print("Model saved as lightgbm_model.pkl")
 
 # Load the model for inference
-loaded_model = joblib.load('lightgbm_model.pkl')
+loaded_model = joblib.load('model/lightgbm_model.pkl')
 print("Model loaded successfully!")
 
 # Example inference
