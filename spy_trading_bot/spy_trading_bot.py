@@ -8,8 +8,6 @@ from datetime import datetime
 from lumibot.brokers import Alpaca
 from lumibot.backtesting import YahooDataBacktesting
 from lumibot.strategies.strategy import Strategy
-from lightgbm import LGBMClassifier
-from sklearn.preprocessing import MinMaxScaler
 import logging
 import pandas_ta as ta
 import traceback
