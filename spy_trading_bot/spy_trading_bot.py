@@ -172,7 +172,7 @@ def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
     """
     Fetches the latest stock data with technical indicators for the specified symbol.
     Implements retries in case of transient failures.
-    Returns a DataFrame with only the specified 13 features and 'Target'.
+    Returns a DataFrame with only the specified 12 features and 'Target'.
     """
     logger.info(f"Fetching latest data for {symbol}...")
     tickers = [symbol, "JPY=X", "^VIX", "GC=F", "CL=F"]
@@ -247,7 +247,7 @@ def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
     # Drop rows with NaN values
     df_features = df_features.dropna()
 
-    # Select relevant features (13 features as specified)
+    # Select relevant features (12 features as specified)
     features = [
         "Adj Close", "SMA_14", "EMA_14", "RSI",
         "BB_upper", "BB_middle", "BB_lower",
@@ -256,7 +256,7 @@ def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
     ]
 
     try:
-        df_features = df_features[features + ['Target']]  # 13 features + 'Target' = 14 columns
+        df_features = df_features[features + ['Target']]  # 12 features + 'Target' =13 columns
         logger.info(f"Selected features: {df_features.columns.tolist()}")
     except Exception as e:
         logger.error(f"Error selecting features: {e}")
@@ -264,9 +264,9 @@ def prepare_latest_data(symbol='SPY', max_retries=5, delay=5):
         raise e
 
     logger.info(f"Data shape after feature selection: {df_features.shape}")
-    if df_features.shape[1] != 14:  # 13 features + 'Target'
-        logger.error(f"Feature count mismatch: Expected 14, got {df_features.shape[1]}")
-        raise ValueError(f"Feature count mismatch: Expected 14, got {df_features.shape[1]}")
+    if df_features.shape[1] != 13:  # 12 features + 'Target'
+        logger.error(f"Feature count mismatch: Expected 13, got {df_features.shape[1]}")
+        raise ValueError(f"Feature count mismatch: Expected 13, got {df_features.shape[1]}")
 
     logger.info("Data preparation successful.")
     return df_features
@@ -300,9 +300,10 @@ class LightGBMTrader(Strategy):
         """
         try:
             logger.info(f"Features before scaling: {data.columns.tolist()}")
-            if data.shape[1] != 14:
-                logger.error(f"Expected 14 features, but got {data.shape[1]}")
-                raise ValueError(f"Expected 14 features, but got {data.shape[1]}")
+            expected_features = 12  # Number of features used during training
+            if data.shape[1] != expected_features:
+                logger.error(f"Expected {expected_features} features, but got {data.shape[1]}")
+                raise ValueError(f"Expected {expected_features} features, but got {data.shape[1]}")
             scaled_features = self.scaler.transform(data)
             return scaled_features
         except Exception as e:
