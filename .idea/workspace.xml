@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/scaled_features_test.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/scaled_features_train.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/spy_extended_features.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/target_test.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/target_train.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/fetch_SPY_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/fetch_SPY_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/lightgbm_model.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/scaler.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/train.py" afterDir="false" />
-    </list>
+    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -176,7 +165,7 @@
       <workItem from="1734577840304" duration="202000" />
       <workItem from="1734578047913" duration="16946000" />
       <workItem from="1734595882914" duration="5433000" />
-      <workItem from="1734601327771" duration="1739000" />
+      <workItem from="1734601327771" duration="2161000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
