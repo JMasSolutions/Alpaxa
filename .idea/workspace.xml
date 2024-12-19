@@ -8,13 +8,12 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/scaled_features_test.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/scaled_features_train.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/spy_daily_data.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/spy_extended_features.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/target_test.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/data/target_train.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/data_preprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/data_preprocessing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/fetch_SPY_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/fetch_SPY_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/lightgbm_model.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/model/lightgbm_model.pkl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/scaler.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/model/scaler.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/lightgbm_model.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spy_trading_bot/model/scaler.pkl" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/spy_trading_bot/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spy_trading_bot/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -176,7 +175,8 @@
       <workItem from="1734577783476" duration="51000" />
       <workItem from="1734577840304" duration="202000" />
       <workItem from="1734578047913" duration="16946000" />
-      <workItem from="1734595882914" duration="1285000" />
+      <workItem from="1734595882914" duration="5433000" />
+      <workItem from="1734601327771" duration="1739000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
@@ -209,7 +209,7 @@
     <SUITE FILE_PATH="coverage/Alpaxa$oooo.coverage" NAME="oooo Coverage Results" MODIFIED="1734415532106" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Alpaxa$fetch_TSLA_data.coverage" NAME="fetch_TSLA_data Coverage Results" MODIFIED="1734578537346" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tesla_trading_bot2" />
     <SUITE FILE_PATH="coverage/Alpaxa$.coverage" NAME=" Coverage Results" MODIFIED="1734584904138" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
-    <SUITE FILE_PATH="coverage/Alpaxa$train.coverage" NAME="train Coverage Results" MODIFIED="1734597120829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
+    <SUITE FILE_PATH="coverage/Alpaxa$train.coverage" NAME="train Coverage Results" MODIFIED="1734603173500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
     <SUITE FILE_PATH="coverage/Alpaxa$train_lstm.coverage" NAME="train_lstm Coverage Results" MODIFIED="1734418639433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Alpaxa$tradingbot.coverage" NAME="tradingbot Coverage Results" MODIFIED="1734421583479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/Alpaxa$tsla_tradingbot.coverage" NAME="tsla_tradingbot Coverage Results" MODIFIED="1734436668317" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -221,9 +221,9 @@
     <SUITE FILE_PATH="coverage/Alpaxa$train_randomForest.coverage" NAME="train_randomForest Coverage Results" MODIFIED="1734418751227" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Alpaxa$a.coverage" NAME="a Coverage Results" MODIFIED="1734594087768" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
     <SUITE FILE_PATH="coverage/Alpaxa$main.coverage" NAME="main Coverage Results" MODIFIED="1733894292546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Alpaxa$fetch_SPY_data.coverage" NAME="fetch_SPY_data Coverage Results" MODIFIED="1734595904842" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
+    <SUITE FILE_PATH="coverage/Alpaxa$fetch_SPY_data.coverage" NAME="fetch_SPY_data Coverage Results" MODIFIED="1734599150147" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
     <SUITE FILE_PATH="coverage/Alpaxa$fetch_data.coverage" NAME="fetch_data Coverage Results" MODIFIED="1734407998207" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Alpaxa$gradient_boosting.coverage" NAME="gradient_boosting Coverage Results" MODIFIED="1734419092892" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Alpaxa$data_preprocessing.coverage" NAME="data_preprocessing Coverage Results" MODIFIED="1734596185060" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
+    <SUITE FILE_PATH="coverage/Alpaxa$data_preprocessing.coverage" NAME="data_preprocessing Coverage Results" MODIFIED="1734599177013" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spy_trading_bot" />
   </component>
 </project>
