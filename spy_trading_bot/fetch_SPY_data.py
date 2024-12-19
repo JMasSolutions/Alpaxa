@@ -3,14 +3,14 @@ import yfinance as yf
 import pandas as pd
 import pandas_ta as ta
 import os
-import time
 
 # Define a consistent feature list
 FEATURES = [
     "Adj Close", "SMA_14", "EMA_14", "RSI", "BB_upper", "BB_middle", "BB_lower",
     "USD_JPY", "VIX", "Gold", "Oil", "Monthly_Return", "MACD", "ATR", "OBV",
     "Adj_Close_Lag_1", "Adj_Close_Lag_2", "Adj_Close_Lag_3", "Adj_Close_Lag_5",
-    "Momentum", "Volatility", "Day_of_Week", "Month"
+    "Momentum", "Volatility", "Day_of_Week", "Month",
+    "XLK", "XLF", "XLV", "XLE", "XLY"  # Sector ETFs
 ]
 
 # Function to calculate additional technical indicators
@@ -52,6 +52,15 @@ def add_date_features(df):
     df['Month'] = df.index.month
     return df
 
+# Function to add sector ETF performance
+def add_sector_performance(df):
+    print("Adding sector ETF performance...")
+    sector_etfs = ["XLK", "XLF", "XLV", "XLE", "XLY"]  # Technology, Financials, Healthcare, Energy, Discretionary
+    for etf in sector_etfs:
+        sector_data = yf.download(etf, interval="1d", period="max")['Adj Close']
+        df[etf] = sector_data
+    return df
+
 # Function to prepare the dataset
 def prepare_stock_data(output_file):
     if os.path.exists(output_file):
@@ -60,7 +69,7 @@ def prepare_stock_data(output_file):
     else:
         print("Fetching data...")
         tickers = ["SPY", "JPY=X", "^VIX", "GC=F", "CL=F"]
-        data = yf.download(tickers, interval="1d", period="5y")
+        data = yf.download(tickers, interval="1d", period="max")
 
         # Technical Indicators
         print("Calculating technical indicators...")
@@ -83,6 +92,9 @@ def prepare_stock_data(output_file):
 
         # Date Features
         data = add_date_features(data)
+
+        # Sector Performance
+        data = add_sector_performance(data)
 
         # Market Indicators
         print("Adding market indicators...")
