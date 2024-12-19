@@ -44,7 +44,6 @@ def prepare_stock_data(output_file):
         # Step 4: Add Returns and Price Change for SPY
         print("Calculating returns and price change...")
         data['Monthly_Return'] = data['Adj Close']['SPY'].pct_change()
-        data['Price_Change'] = (data['Adj Close']['SPY'] - data['Open']['SPY']) / data['Open']['SPY']
 
         # Step 6: Create Target Variable (Binary: Up/Down)
         data['Target'] = (data['Adj Close']['SPY'].shift(-1) > data['Adj Close']['SPY']).astype(int)

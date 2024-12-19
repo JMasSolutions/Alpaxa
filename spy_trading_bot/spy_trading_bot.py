@@ -14,30 +14,42 @@ import logging
 import pandas_ta as ta
 import traceback
 
-
 # =====================
 # LOGGING CONFIGURATION
 # =====================
 def setup_logging():
     """
-    Configures the logging settings.
+    Configures the logging settings to log to both a file and the console.
     """
-    logging.basicConfig(
-        filename='trading_bot.log',
-        level=logging.INFO,
-        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
-    )
-    # Also log to console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
+    # Formatter for file logs
+    file_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+
+    # File Handler
+    file_handler = logging.FileHandler('trading_bot.log')
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
+
+    # Formatter for console logs
+    console_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+
+    # Console Handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+
+    # Prevent duplicate logs if the logger already has handlers
+    if logger.hasHandlers():
+        logger.handlers = []
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
 
 setup_logging()
 logger = logging.getLogger(__name__)
-
 
 # =====================
 # HELPER FUNCTIONS
@@ -49,19 +61,18 @@ def calculate_rsi(series, period=14):
     """
     return ta.rsi(series, length=period)
 
-
 def calculate_macd(series):
     """
     Calculates the Moving Average Convergence Divergence (MACD) for a given series.
-    Returns the latest MACD histogram value.
+    Returns the MACD histogram as a Series.
     """
     macd = ta.macd(series)
     if macd is not None and not macd.empty:
-        return macd['MACDh_12_26_9'].iloc[-1]
+        return macd['MACDh_12_26_9']
     else:
         logger.error("MACD calculation returned None or empty DataFrame.")
-        return 0  # Default value; adjust as needed
-
+        # Return a Series of zeros with the same index as the input series
+        return pd.Series([0] * len(series), index=series.index)
 
 def calculate_bbands(series, length=20):
     """
@@ -70,14 +81,12 @@ def calculate_bbands(series, length=20):
     bb = ta.bbands(series, length=length)
     return bb['BBL_20_2.0'], bb['BBM_20_2.0'], bb['BBU_20_2.0']
 
-
 def calculate_atr(high, low, close, length=14):
     """
     Calculates the Average True Range (ATR) for given high, low, and close series.
     """
     atr = ta.atr(high, low, close, length=length)
     return atr
-
 
 def calculate_stochastic(high, low, close):
     """
@@ -86,20 +95,17 @@ def calculate_stochastic(high, low, close):
     stoch = ta.stoch(high, low, close)
     return stoch['STOCHk_14_3_3'], stoch['STOCHd_14_3_3']
 
-
 def calculate_sma(series, period=14):
     """
     Calculates the Simple Moving Average (SMA) for a given series.
     """
     return ta.sma(series, length=period)
 
-
 def calculate_ema(series, period=14):
     """
     Calculates the Exponential Moving Average (EMA) for a given series.
     """
     return ta.ema(series, length=period)
-
 
 def load_model(model_path='model/lightgbm_model.pkl'):
     """
@@ -112,7 +118,6 @@ def load_model(model_path='model/lightgbm_model.pkl'):
     logger.info("LightGBM model loaded successfully!")
     return model
 
-
 def load_scaler(scaler_path='model/scaler.pkl'):
     """
     Loads the scaler used during training.
@@ -121,9 +126,12 @@ def load_scaler(scaler_path='model/scaler.pkl'):
         logger.critical(f"Scaler file not found at {scaler_path}")
         raise FileNotFoundError(f"Scaler file not found at {scaler_path}")
     scaler = joblib.load(scaler_path)
+    if hasattr(scaler, 'n_features_in_'):
+        logger.info(f"Scaler was trained on {scaler.n_features_in_} features.")
+    else:
+        logger.warning("Scaler does not have 'n_features_in_' attribute.")
     logger.info("Scaler loaded successfully!")
     return scaler
-
 
 def load_alpaca_credentials(file_path):
     """
@@ -153,19 +161,19 @@ def load_alpaca_credentials(file_path):
         "ENDPOINT": endpoint
     }
 
-
 def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
     """
     Fetches the latest stock data with technical indicators for the specified symbol.
     Implements retries in case of transient failures.
+    Returns a DataFrame with only the specified 16 features and 'Target'.
     """
     logger.info(f"Fetching latest data for {symbol}...")
     tickers = [symbol, "JPY=X", "^VIX", "GC=F", "CL=F"]
 
     for attempt in range(1, max_retries + 1):
         try:
-            # Increased period to '3mo' for sufficient data points
-            data = yf.download(tickers, interval="1d", period="3mo")
+            # Fetch data with sufficient period for indicators
+            data = yf.download(tickers, interval="1d", period="1mo")
             if data.empty or data.isnull().all().all():
                 raise ValueError("Fetched data is empty or contains only NaN values.")
             logger.info("Data fetched successfully.")
@@ -183,15 +191,20 @@ def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
     # Calculate technical indicators for SPY
     logger.info("Calculating technical indicators...")
     try:
-        data['SMA_14'] = calculate_sma(data['Adj Close'][symbol], period=14)  # Corrected
-        data['EMA_14'] = calculate_ema(data['Adj Close'][symbol], period=14)  # Corrected
-        data['RSI'] = calculate_rsi(data['Adj Close'][symbol], period=14)
-        data['MACD'] = calculate_macd(data['Adj Close'][symbol])
+        df_features = pd.DataFrame()
+        df_features['Adj Close'] = data['Adj Close'][symbol]
+        df_features['SMA_14'] = calculate_sma(data['Adj Close'][symbol], period=14)
+        df_features['EMA_14'] = calculate_ema(data['Adj Close'][symbol], period=14)
+        df_features['RSI'] = calculate_rsi(data['Adj Close'][symbol], period=14)
+        df_features['MACD'] = calculate_macd(data['Adj Close'][symbol])
         bb_lower, bb_middle, bb_upper = calculate_bbands(data['Adj Close'][symbol], length=20)
-        data['BB_lower'], data['BB_middle'], data['BB_upper'] = bb_lower, bb_middle, bb_upper
-        data['ATR'] = calculate_atr(data['High'][symbol], data['Low'][symbol], data['Close'][symbol], length=14)
+        df_features['BB_lower'] = bb_lower
+        df_features['BB_middle'] = bb_middle
+        df_features['BB_upper'] = bb_upper
+        df_features['ATR'] = calculate_atr(data['High'][symbol], data['Low'][symbol], data['Close'][symbol], length=14)
         stoch_k, stoch_d = calculate_stochastic(data['High'][symbol], data['Low'][symbol], data['Close'][symbol])
-        data['Stoch_K'], data['Stoch_D'] = stoch_k, stoch_d
+        df_features['Stoch_K'] = stoch_k
+        df_features['Stoch_D'] = stoch_d
     except Exception as e:
         logger.error(f"Error calculating technical indicators: {e}")
         logger.error(traceback.format_exc())
@@ -200,53 +213,59 @@ def prepare_latest_data(symbol='SPY', max_retries=3, delay=5):
     # Add market indicators
     logger.info("Adding market indicators...")
     try:
-        data['USD_JPY'] = data['Adj Close']['JPY=X']
-        data['VIX'] = data['Adj Close']['^VIX']
-        data['Gold'] = data['Adj Close']['GC=F']
-        data['Oil'] = data['Adj Close']['CL=F']
+        df_features['USD_JPY'] = data['Adj Close']['JPY=X']
+        df_features['VIX'] = data['Adj Close']['^VIX']
+        df_features['Gold'] = data['Adj Close']['GC=F']
+        df_features['Oil'] = data['Adj Close']['CL=F']
     except Exception as e:
         logger.error(f"Error adding market indicators: {e}")
         logger.error(traceback.format_exc())
         raise e
 
-    # Calculate returns and price change
-    logger.info("Calculating returns and price change...")
+    # Calculate returns
+    logger.info("Calculating returns...")
     try:
-        data['Monthly_Return'] = data['Adj Close'][symbol].pct_change()
-        data['Price_Change'] = (data['Adj Close'][symbol] - data['Open'][symbol]) / data['Open'][symbol]
+        df_features['Monthly_Return'] = df_features['Adj Close'].pct_change()
     except Exception as e:
-        logger.error(f"Error calculating returns and price change: {e}")
+        logger.error(f"Error calculating returns: {e}")
         logger.error(traceback.format_exc())
         raise e
 
     # Create target variable
     logger.info("Creating target variable...")
     try:
-        data['Target'] = (data['Adj Close'][symbol].shift(-1) > data['Adj Close'][symbol]).astype(int)
+        df_features['Target'] = (df_features['Adj Close'].shift(-1) > df_features['Adj Close']).astype(int)
     except Exception as e:
         logger.error(f"Error creating target variable: {e}")
         logger.error(traceback.format_exc())
         raise e
 
     # Drop rows with NaN values
-    data = data.dropna()
+    df_features = df_features.dropna()
 
-    # Select relevant features
-    features = ["Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
-                "BB_upper", "BB_middle", "BB_lower", "ATR",
-                "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
-                "Gold", "Oil", "Monthly_Return", "Price_Change"]
+    # Select relevant features (16 features as specified)
+    features = [
+        "Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
+        "BB_upper", "BB_middle", "BB_lower", "ATR",
+        "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
+        "Gold", "Oil", "Monthly_Return"
+    ]
 
     try:
-        data = data[features]
+        df_features = df_features[features + ['Target']]  # Include 'Target' for model training
+        logger.info(f"Selected features: {df_features.columns.tolist()}")
     except Exception as e:
         logger.error(f"Error selecting features: {e}")
         logger.error(traceback.format_exc())
         raise e
 
-    logger.info("Data preparation successful.")
-    return data
+    logger.info(f"Data shape after feature selection: {df_features.shape}")
+    if df_features.shape[1] != 17:  # 16 features + 'Target'
+        logger.error(f"Feature count mismatch: Expected 17, got {df_features.shape[1]}")
+        raise ValueError(f"Feature count mismatch: Expected 17, got {df_features.shape[1]}")
 
+    logger.info("Data preparation successful.")
+    return df_features
 
 # =====================
 # TRADING STRATEGY CLASS
@@ -276,6 +295,10 @@ class LightGBMTrader(Strategy):
         Apply scaling using the loaded scaler.
         """
         try:
+            logger.info(f"Features before scaling: {data.columns.tolist()}")
+            if data.shape[1] != 16:
+                logger.error(f"Expected 16 features, but got {data.shape[1]}")
+                raise ValueError(f"Expected 16 features, but got {data.shape[1]}")
             scaled_features = self.scaler.transform(data)
             return scaled_features
         except Exception as e:
@@ -322,10 +345,12 @@ class LightGBMTrader(Strategy):
                     return
 
             # Step 3: Preprocess data (scale features)
-            features = ["Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
-                        "BB_upper", "BB_middle", "BB_lower", "ATR",
-                        "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
-                        "Gold", "Oil", "Monthly_Return", "Price_Change"]
+            features = [
+                "Adj Close", "SMA_14", "EMA_14", "RSI", "MACD",
+                "BB_upper", "BB_middle", "BB_lower", "ATR",
+                "Stoch_K", "Stoch_D", "USD_JPY", "VIX",
+                "Gold", "Oil", "Monthly_Return"
+            ]
             latest_features = latest_data[features]
 
             # Handle any missing values if necessary
@@ -343,7 +368,8 @@ class LightGBMTrader(Strategy):
 
             # Step 5: Determine position sizing
             cash, last_price, quantity = self.position_sizing()
-            logger.info(f"Available Cash: ${cash:.2f}, Last Price: ${last_price:.2f}, Quantity to Trade: {quantity}")
+            logger.info(
+                f"Available Cash: ${cash:.2f}, Last Price: ${last_price:.2f}, Quantity to Trade: {quantity}")
 
             # Step 6: Define thresholds
             buy_threshold = 0.6  # Probability above which to buy
@@ -361,10 +387,11 @@ class LightGBMTrader(Strategy):
                     "buy",
                     type="market",
                     take_profit_price=last_price * 1.05,  # 5% take profit
-                    stop_loss_price=last_price * 0.95  # 5% stop loss
+                    stop_loss_price=last_price * 0.95   # 5% stop loss
                 )
                 self.submit_order(order)
-                logger.info(f"BUY order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
+                logger.info(
+                    f"BUY order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
                 self.last_trade = "buy"
 
             elif prediction == 0 and prediction_proba > sell_threshold:
@@ -378,10 +405,11 @@ class LightGBMTrader(Strategy):
                     "sell",
                     type="market",
                     take_profit_price=last_price * 0.95,  # 5% take profit
-                    stop_loss_price=last_price * 1.05  # 5% stop loss
+                    stop_loss_price=last_price * 1.05    # 5% stop loss
                 )
                 self.submit_order(order)
-                logger.info(f"SELL order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
+                logger.info(
+                    f"SELL order submitted for {quantity} shares of {self.symbol} at ${last_price:.2f}")
                 self.last_trade = "sell"
 
             else:
@@ -390,7 +418,6 @@ class LightGBMTrader(Strategy):
         except Exception as e:
             logger.error(f"Exception during trading iteration: {e}")
             logger.error(traceback.format_exc())
-
 
 # =====================
 # MAIN EXECUTION BLOCK
@@ -451,7 +478,6 @@ def main():
     # except Exception as e:
     #     logger.error(f"Error during live trading: {e}")
     #     logger.error(traceback.format_exc())
-
 
 if __name__ == "__main__":
     main()

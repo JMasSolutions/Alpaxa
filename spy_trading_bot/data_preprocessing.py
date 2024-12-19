@@ -16,7 +16,7 @@ def clean_DF(path):
 
     columns_to_keep = [
         'Adj Close', 'SMA_14', 'EMA_14', 'RSI', 'MACD', 'BB_upper', 'BB_middle', 'BB_lower',
-        'ATR', 'Stoch_K', 'Stoch_D', 'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Price_Change', 'Target'
+        'ATR', 'Stoch_K', 'Stoch_D', 'USD_JPY', 'VIX', 'Gold', 'Oil', 'Monthly_Return', 'Target'
     ]
 
     # Filter the columns to keep only what matters
