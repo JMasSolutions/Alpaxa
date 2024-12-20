@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done" />
+    <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -97,7 +99,7 @@
       <recent name="$PROJECT_DIR$/helpful_functions" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python tests.Python tests for oooo.test">
     <configuration name="Python tests for oooo.test" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="Alpaxa" />
       <option name="ENV_FILES" value="" />
@@ -166,6 +168,7 @@
       <workItem from="1734578047913" duration="16946000" />
       <workItem from="1734595882914" duration="5433000" />
       <workItem from="1734601327771" duration="2161000" />
+      <workItem from="1734613338257" duration="289000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
