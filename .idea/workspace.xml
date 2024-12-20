@@ -7,6 +7,8 @@
     <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/DQN_11/events.out.tfevents.1734679897.Joans-MacBook-Pro.local.7159.0" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Training/Logs/DQN_11/events.out.tfevents.1734679897.Joans-MacBook-Pro.local.7159.0" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Saved_Models/dqn_cartpole.zip" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Training/Saved_Models/dqn_cartpole.zip" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -172,6 +174,7 @@
       <workItem from="1734601327771" duration="2161000" />
       <workItem from="1734613338257" duration="289000" />
       <workItem from="1734660275138" duration="13206000" />
+      <workItem from="1734679736822" duration="384000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
