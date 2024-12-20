@@ -5,10 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done">
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/RL_BreakOut.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Corrida da Matemática (AKA Math Gran Prix) (CCE).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Cubo Mágico (AKA Cubicolor) (CCE).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Gopher - Vorsicht Wühlmaus! (1983) (Carrere Video - JWDA, Sylvia Day, Todd Marshall, Robin McDaniel, Henry Will IV - Teldec - Prism) (USC2001) (PAL).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Lost Luggage - La valise piégée (Airport Mayhem) (1982) (Apollo - Games by Apollo, Larry Minor, Ernie Runyon, Ed Salvo - RCA Video Jeux) (AP-2004) (PAL).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Pega Ladrão (AKA Keystone Kapers) (Dismac).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Pelé's Soccer - Pelé's Championship Soccer (AKA Championship Soccer) (1981) (Atari, Steve Wright) (CX2616) (PAL).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Pelé's Soccer - Pelé's Championship Soccer (AKA Championship Soccer) (1981) (Atari, Steve Wright) (CX2616).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Space Tunnel - O Túnel Espacial (1983) (CCE) (C-807).bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Learning_RL/Project 1/ROMS/ROMS/Vídeo Cube (AKA Atari Video Cube) (CCE).bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/DQN_11/events.out.tfevents.1734679897.Joans-MacBook-Pro.local.7159.0" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Training/Logs/DQN_11/events.out.tfevents.1734679897.Joans-MacBook-Pro.local.7159.0" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Saved_Models/dqn_cartpole.zip" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Training/Saved_Models/dqn_cartpole.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/.ipynb_checkpoints/Learning RL-checkpoint.ipynb" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,8 +26,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jupyter Notebook" />
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -96,11 +104,11 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Learning_RL/Project 1/ROMSa" />
+      <recent name="$PROJECT_DIR$/Learning_RL/Project 1" />
+      <recent name="$PROJECT_DIR$/Learning_RL" />
+      <recent name="$PROJECT_DIR$/Learning_RL/Project 1/Rom" />
       <recent name="$PROJECT_DIR$/spy_trading_bot/model" />
-      <recent name="$PROJECT_DIR$/tesla_trading_bot" />
-      <recent name="$PROJECT_DIR$/models" />
-      <recent name="$PROJECT_DIR$/test" />
-      <recent name="$PROJECT_DIR$/helpful_functions" />
     </key>
   </component>
   <component name="RunManager" selected="Python tests.Python tests for oooo.test">
@@ -175,6 +183,7 @@
       <workItem from="1734613338257" duration="289000" />
       <workItem from="1734660275138" duration="13206000" />
       <workItem from="1734679736822" duration="384000" />
+      <workItem from="1734680126856" duration="1333000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
