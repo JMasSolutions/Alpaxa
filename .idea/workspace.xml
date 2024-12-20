@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="402f64c0-87d4-4536-a9d7-63cffc8dd2c4" name="Changes" comment="Pre_processing done">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Learning_RL/Learning RL.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/PPO_1/events.out.tfevents.1734664354.Joans-MacBook-Pro.local.4172.0" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/PPO_2/events.out.tfevents.1734664490.Joans-MacBook-Pro.local.4172.1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/PPO_3/events.out.tfevents.1734665318.Joans-MacBook-Pro.local.4172.2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Logs/PPO_4/events.out.tfevents.1734665430.Joans-MacBook-Pro.local.4172.3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Learning_RL/Training/Saved Models/PPO_model_CartPole.zip" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,7 +176,7 @@
       <workItem from="1734595882914" duration="5433000" />
       <workItem from="1734601327771" duration="2161000" />
       <workItem from="1734613338257" duration="289000" />
-      <workItem from="1734660275138" duration="5088000" />
+      <workItem from="1734660275138" duration="6928000" />
     </task>
     <task id="LOCAL-00001" summary="Loading api keys">
       <option name="closed" value="true" />
